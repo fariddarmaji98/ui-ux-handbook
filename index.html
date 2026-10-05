@@ -1,0 +1,2364 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Handbook Orkestrator UI/UX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=Instrument+Sans:wght@400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* Layout: lembar spesifikasi desainer. Rail modul sticky di kiri (desktop), kolom baca 68ch, latihan melebar sampai 880px. Motif: tanda ukur "redline" magenta. */
+:root{
+  --paper:#F6F7F9; --surface:#FFFFFF; --sunk:#EDF0F4;
+  --ink:#151820; --ink-2:#454C5B; --ink-3:#5F6778;
+  --line:#DCE0E7; --line-strong:#C3C9D3;
+  --redline:#C92A63; --redline-ink:#A21E4E; --redline-soft:#FBE8EF;
+  --ok:#17744B; --ok-soft:#E2F2E9; --warn:#8F5400; --warn-soft:#FAEFDB; --bad:#B42329; --bad-soft:#FAE5E6;
+  --font-display:"Bricolage Grotesque","Avenir Next","Segoe UI",sans-serif;
+  --font-body:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --fs-xs:12px; --fs-sm:14px; --fs-body:16px; --fs-lg:20px; --fs-h2:30px; --fs-h1:44px;
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px; --s7:48px; --s8:64px; --s9:96px;
+  --radius:6px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1014; --surface:#161920; --sunk:#1E222A;
+    --ink:#E8EAEF; --ink-2:#B5BBC7; --ink-3:#8E95A3;
+    --line:#2A2F39; --line-strong:#3B414E;
+    --redline:#F0638F; --redline-ink:#F590B0; --redline-soft:#3A1726;
+    --ok:#5FCB97; --ok-soft:#13301F; --warn:#E8AC52; --warn-soft:#382910; --bad:#F37D82; --bad-soft:#3A1719;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1014; --surface:#161920; --sunk:#1E222A;
+  --ink:#E8EAEF; --ink-2:#B5BBC7; --ink-3:#8E95A3;
+  --line:#2A2F39; --line-strong:#3B414E;
+  --redline:#F0638F; --redline-ink:#F590B0; --redline-soft:#3A1726;
+  --ok:#5FCB97; --ok-soft:#13301F; --warn:#E8AC52; --warn-soft:#382910; --bad:#F37D82; --bad-soft:#3A1719;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{background:var(--paper);color:var(--ink);font-family:var(--font-body);font-size:var(--fs-body);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--ink);text-decoration-color:var(--redline);text-underline-offset:3px}
+a:hover{color:var(--redline-ink)}
+:focus-visible{outline:2px solid var(--redline);outline-offset:2px}
+code{font-family:var(--font-mono);font-size:.875em;background:var(--sunk);padding:0 var(--s1);border-radius:4px}
+h1,h2,h3{text-wrap:balance}
+p,li{max-width:68ch}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.wrap{max-width:1200px;margin:0 auto;padding-inline:var(--s4);padding-block:var(--s6) var(--s9);display:grid;grid-template-columns:minmax(0,1fr);gap:var(--s6)}
+@media (min-width:1000px){.wrap{grid-template-columns:232px minmax(0,1fr);gap:var(--s7);padding-inline:var(--s5)}}
+.main{min-width:0}
+
+/* Rail */
+.rail{min-width:0}
+@media (min-width:1000px){.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto}}
+.rail details{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+@media (min-width:1000px){.rail details{border:0;background:transparent}}
+.rail summary{cursor:pointer;padding:var(--s3) var(--s4);font:600 var(--fs-xs)/1.3 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);list-style-position:inside}
+@media (min-width:1000px){.rail summary{padding:0 0 var(--s3);list-style:none;cursor:default}.rail summary::-webkit-details-marker{display:none}}
+.rail ol{list-style:none;margin:0;padding:0 var(--s2) var(--s3);display:grid;gap:0}
+@media (min-width:1000px){.rail ol{padding:0}}
+.rail a{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:var(--s2);align-items:baseline;padding:var(--s1) var(--s2);border-radius:4px;text-decoration:none;color:var(--ink-2);font-size:var(--fs-sm);line-height:1.5}
+.rail a:hover{background:var(--sunk);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--sunk)}
+.rail a.active .rn{color:var(--redline-ink)}
+.rail .rn{font:400 var(--fs-xs)/1.5 var(--font-mono);color:var(--ink-3)}
+.rail .rc{font:400 var(--fs-xs)/1.5 var(--font-mono);color:var(--ink-3);font-variant-numeric:tabular-nums}
+.rail a.complete .rc{color:var(--ok)}
+.rail .sep{margin:var(--s3) var(--s2) var(--s1);font:600 var(--fs-xs)/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+
+/* Hero */
+.hero{padding-bottom:var(--s7);border-bottom:1px solid var(--line)}
+.eyebrow{font:400 var(--fs-xs)/1.4 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--redline-ink);margin:0 0 var(--s3)}
+.hero h1{font-family:var(--font-display);font-weight:700;font-size:var(--fs-h2);line-height:1.05;letter-spacing:-.02em;margin:0 0 var(--s4)}
+@media (min-width:600px){.hero h1{font-size:var(--fs-h1)}}
+.hero .lead{font-size:var(--fs-lg);line-height:1.5;color:var(--ink-2);margin:0 0 var(--s5)}
+.meta-row{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s4);font:400 var(--fs-xs)/1.4 var(--font-mono);color:var(--ink-3);margin-bottom:var(--s5)}
+.progress-card{display:grid;gap:var(--s3);padding:var(--s4) var(--s5);background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);max-width:640px}
+.progress-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--s2);align-items:baseline}
+.progress-num{font:700 var(--fs-lg)/1.2 var(--font-display);font-variant-numeric:tabular-nums}
+.progress-num small{font:400 var(--fs-sm)/1.4 var(--font-body);color:var(--ink-3)}
+.bar{height:8px;background:var(--sunk);border-radius:3px;overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--redline);transition:width .3s ease}
+.progress-actions{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:center}
+.save-pill{display:inline-flex;align-items:center;gap:var(--s2);font:400 var(--fs-xs)/1.3 var(--font-mono);color:var(--ink-3)}
+.save-pill::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink-3)}
+.save-pill[data-mode="db"]::before{background:var(--ok)}
+.save-pill[data-mode="saving"]::before{background:var(--warn)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:var(--s2);font:600 var(--fs-sm)/1 var(--font-body);padding:var(--s3) var(--s4);border-radius:var(--radius);border:1px solid var(--ink);background:var(--ink);color:var(--paper);cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--ink-2);border-color:var(--ink-2);color:var(--paper)}
+.btn.secondary{background:transparent;color:var(--ink);border-color:var(--line-strong)}
+.btn.secondary:hover{background:var(--sunk);color:var(--ink)}
+.btn.small{padding:var(--s2) var(--s3)}
+
+/* Intro sections */
+.intro{padding-block:var(--s7);border-bottom:1px solid var(--line);display:grid;gap:var(--s5)}
+.intro h2,.module h2,.appendix h2{font-family:var(--font-display);font-weight:700;font-size:var(--fs-h2);line-height:1.15;letter-spacing:-.01em;margin:0}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:var(--s3);grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.steps li{padding:var(--s4);border-top:2px solid var(--ink);background:var(--surface);border-radius:0 0 var(--radius) var(--radius)}
+.steps b{display:block;font:600 var(--fs-body)/1.3 var(--font-body);margin-bottom:var(--s1)}
+.steps .sn{font:400 var(--fs-xs)/1 var(--font-mono);color:var(--redline-ink);display:block;margin-bottom:var(--s2)}
+.steps span.d{color:var(--ink-2);font-size:var(--fs-sm)}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+table.tbl{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}
+.tbl th{font:600 var(--fs-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);text-align:left;padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);white-space:nowrap}
+.tbl td{padding:var(--s3) var(--s4);border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td.num{font-family:var(--font-mono);font-size:var(--fs-xs);white-space:nowrap;color:var(--ink-2)}
+
+/* Modules */
+.module{padding-block:var(--s8) var(--s2);border-bottom:1px solid var(--line);display:grid;gap:var(--s5)}
+.mod-head{display:grid;gap:var(--s2)}
+.mod-num{font:400 var(--fs-xs)/1.4 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--redline-ink)}
+.mod-goal{font-size:var(--fs-body);color:var(--ink-2);margin:var(--s1) 0 0}
+.mod-meta{display:flex;flex-wrap:wrap;gap:var(--s4);font:400 var(--fs-xs)/1.4 var(--font-mono);color:var(--ink-3)}
+.mod-meta .done{color:var(--ok)}
+.block{display:grid;gap:var(--s3)}
+.block h3,.drill h3{font:600 var(--fs-xs)/1.3 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);margin:0}
+.block ul,.block ol{margin:0;padding-left:1.25em;display:grid;gap:var(--s2)}
+.block li::marker{color:var(--ink-3)}
+.block p{margin:0}
+
+/* Drill frame with redline crop marks */
+.drill{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:var(--s5);display:grid;gap:var(--s4);max-width:880px}
+.drill::before,.drill::after{content:"";position:absolute;width:14px;height:14px;border-color:var(--redline);border-style:solid;pointer-events:none}
+.drill::before{top:-4px;left:-4px;border-width:2px 0 0 2px}
+.drill::after{bottom:-4px;right:-4px;border-width:0 2px 2px 0}
+.drill-tag{font:400 var(--fs-xs)/1.3 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--redline-ink)}
+.drill-intro{margin:0;color:var(--ink-2)}
+.drill-grid{display:grid;gap:var(--s5);grid-template-columns:minmax(0,1fr)}
+@media (min-width:760px){.drill-grid.two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.controls{display:grid;gap:var(--s4);align-content:start;min-width:0}
+.ctl{display:grid;gap:var(--s2)}
+.ctl > label,.ctl-label{font:600 var(--fs-sm)/1.3 var(--font-body);color:var(--ink-2)}
+.ctl output{font:400 var(--fs-sm)/1 var(--font-mono);color:var(--redline-ink)}
+.ctl input[type=range]{width:100%;accent-color:var(--redline)}
+.ctl select,.ctl input[type=text],.ctl textarea,.note textarea{font:400 var(--fs-body)/1.5 var(--font-body);color:var(--ink);background:var(--paper);border:1px solid var(--line-strong);border-radius:var(--radius);padding:var(--s2) var(--s3);width:100%}
+.ctl input[type=color]{width:48px;height:32px;padding:var(--s1);border:1px solid var(--line-strong);border-radius:4px;background:var(--paper)}
+.color-row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.color-row code{font-size:13px}
+
+.seg{display:inline-flex;flex-wrap:wrap;border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;background:var(--paper)}
+.seg label{position:relative;cursor:pointer}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg span{display:block;padding:var(--s1) var(--s3);font:400 var(--fs-sm)/1.5 var(--font-body);color:var(--ink-2);border-right:1px solid var(--line)}
+.seg label:last-child span{border-right:0}
+.seg input:checked + span{background:var(--ink);color:var(--paper)}
+.seg input:focus-visible + span{outline:2px solid var(--redline);outline-offset:-2px}
+
+.verdict{padding:var(--s3) var(--s4);border-radius:var(--radius);font-size:var(--fs-body);line-height:1.5;background:var(--sunk);color:var(--ink-2)}
+.verdict.ok{background:var(--ok-soft);color:var(--ok)}
+.verdict.warn{background:var(--warn-soft);color:var(--warn)}
+.verdict.bad{background:var(--bad-soft);color:var(--bad)}
+.verdict b{font-weight:600}
+
+.counter{font:400 var(--fs-body)/1.3 var(--font-mono);font-variant-numeric:tabular-nums}
+
+/* Copy box */
+.copybox{position:relative;display:grid;gap:var(--s2);max-width:880px}
+.copybox pre{margin:0;font:400 var(--fs-sm)/1.6 var(--font-mono);background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:var(--radius);padding:var(--s4);padding-right:var(--s4);white-space:pre-wrap;word-break:break-word;max-height:420px;overflow:auto}
+.copybox .copy-row{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.copybox .copy-label{font:600 var(--fs-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+
+/* Checks */
+.checks{display:grid;gap:var(--s2);max-width:760px}
+.check{display:grid;grid-template-columns:20px minmax(0,1fr) auto;gap:var(--s3);align-items:start;padding:var(--s3) var(--s4);border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);cursor:pointer}
+.check input{width:18px;height:18px;margin:var(--s1) 0 0;accent-color:var(--ok)}
+.check.is-done{background:var(--ok-soft);border-color:transparent}
+.check.is-done span{color:var(--ink)}
+.check em{font:400 var(--fs-xs)/1.6 var(--font-mono);font-style:normal;color:var(--ink-3);white-space:nowrap}
+
+.note{display:grid;gap:var(--s2);max-width:760px}
+.note label{font-size:var(--fs-body);color:var(--ink-2)}
+.note textarea{min-height:110px;resize:vertical}
+
+/* Canvas: mock UI, always light (it depicts a light product screen) */
+.canvas{background:#FFFFFF;color:#1F2430;border:1px solid var(--line);border-radius:4px;overflow:auto;font-family:"Instrument Sans","Helvetica Neue",Arial,sans-serif}
+
+/* Drill 1: slop */
+.slop-mock{background:#F7F7FB;padding:14px;font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#1F2937;font-size:13px;line-height:1.4}
+.slop-mock [data-slop]{cursor:pointer;outline:2px dashed transparent;outline-offset:2px;border-radius:inherit}
+.slop-mock [data-slop]:hover{outline-color:#C92A63}
+.slop-mock [data-slop]:focus-visible{outline:2px solid #C92A63}
+.slop-mock [data-slop].found{outline:2px solid #C92A63}
+.sm-hero{background:linear-gradient(135deg,#7C3AED,#3B82F6);color:#FFFFFF;border-radius:16px;padding:18px;text-align:center;box-shadow:0 10px 24px rgba(124,58,237,.28)}
+.sm-hello{font-size:19px;font-weight:700;display:inline-block}
+.sm-sub{font-size:12px;opacity:.9;margin-top:4px}
+.sm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:12px;border-radius:16px}
+.sm-card{background:#FFFFFF;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:12px;text-align:center}
+.sm-ico{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;font-size:15px}
+.sm-label{font-size:11px;color:#6B7280;margin-top:6px}
+.sm-val{font-size:17px;font-weight:700;color:#111827}
+.sm-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;border-radius:999px;padding:2px}
+.sm-btn{border:0;color:#FFFFFF;padding:8px 14px;border-radius:999px;font-weight:600;font-size:12px;font-family:inherit}
+.sm-panels{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:12px}
+.sm-panel{background:#FFFFFF;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.08);padding:12px}
+.sm-ptitle{font-weight:700;font-size:13px;text-align:center;margin-bottom:8px}
+.sm-table{width:100%;text-align:center;font-size:12px;border-collapse:collapse}
+.sm-table td,.sm-table th{padding:6px 4px;border-bottom:1px solid #F1F1F5}
+.sm-empty{color:#9CA3AF;text-align:center;padding:26px 0;font-size:13px}
+.slop-list{margin:0;padding-left:1.4em;display:grid;gap:var(--s3)}
+.slop-list li::marker{color:var(--redline-ink);font-family:var(--font-mono)}
+.slop-list .fix{display:block;margin-top:var(--s1);font-size:var(--fs-sm);color:var(--ink-2)}
+
+/* Drill 2: hierarchy */
+.hi-table{display:grid;gap:var(--s2)}
+.hi-row-ctl{display:flex;justify-content:space-between;align-items:center;gap:var(--s3);flex-wrap:wrap;padding-bottom:var(--s2);border-bottom:1px solid var(--line)}
+.hi-row-ctl:last-child{border-bottom:0}
+.hi-name{font-size:var(--fs-sm);color:var(--ink-2)}
+.hi-canvas{padding:20px}
+.hi-card{display:grid;gap:8px;max-width:360px}
+.hi-card [data-f]{transition:font-size .15s ease,color .15s ease}
+.hi-top{display:flex;justify-content:flex-start}
+.hi-meta{display:flex;gap:12px;flex-wrap:wrap}
+.hi-pill{display:inline-block;background:#E3F3E8;color:#17663A;border-radius:999px;font-weight:600}
+.role-p{font-size:30px;font-weight:700;color:#111418;line-height:1.15;letter-spacing:-.01em}
+.role-s{font-size:15px;font-weight:500;color:#20242C}
+.role-t{font-size:13px;font-weight:400;color:#6B7280}
+.hi-pill.role-p{font-size:18px;padding:4px 12px}
+.hi-pill.role-s{font-size:13px;padding:2px 10px}
+.hi-pill.role-t{font-size:11px;padding:1px 8px;color:#17663A}
+.squint .hi-card{filter:blur(2.5px)}
+
+/* Drill 3: spacing */
+.sp-canvas{padding:24px}
+.sp-form{max-width:min(340px,calc(100% - 80px))}
+.sp-gtitle{font-weight:600;font-size:15px;color:#111418}
+.sp-label{font-size:13px;color:#4B5563;font-weight:500}
+.sp-input{border:1px solid #CBD2DC;border-radius:6px;padding:8px 10px;font-size:14px;color:#111418;background:#FFFFFF}
+.sp-gap{position:relative}
+.sp-gap.mark{background:rgba(201,42,99,.07);border-top:1px dashed #C92A63;border-bottom:1px dashed #C92A63}
+.sp-gap .sp-tag{position:absolute;right:0;top:50%;transform:translate(100%,-50%);font:400 12px/1 "JetBrains Mono",ui-monospace,monospace;color:#A21E4E;white-space:nowrap;padding-left:8px}
+
+/* Drill 4: type */
+.ty-specimen{padding:20px;display:grid;gap:14px}
+.ty-row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline}
+.ty-meta{font:400 12px/1.3 "JetBrains Mono",ui-monospace,monospace;color:#A21E4E}
+.ty-sample{color:#111418;line-height:1.2;overflow-wrap:anywhere}
+.ty-sample.body{line-height:1.5}
+@media (max-width:520px){.ty-row{grid-template-columns:minmax(0,1fr)}}
+.weights{display:flex;gap:var(--s3);flex-wrap:wrap}
+.weights label{display:flex;gap:var(--s2);align-items:center;font-size:var(--fs-sm);color:var(--ink-2)}
+.weights input{accent-color:var(--redline)}
+
+/* Drill 5: color */
+.ramp{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:0;border-radius:4px;overflow:hidden}
+.ramp div{height:48px;display:flex;align-items:flex-end;padding:var(--s1);font:400 12px/1 "JetBrains Mono",ui-monospace,monospace;overflow:hidden}
+.pairs{display:grid;gap:0}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:var(--s3);align-items:center;font-size:var(--fs-sm);padding:var(--s2) 0;border-bottom:1px solid var(--line)}
+.pair:last-child{border-bottom:0}
+.pair .ratio{font:400 var(--fs-sm)/1 var(--font-mono);font-variant-numeric:tabular-nums}
+.badge{font:600 var(--fs-xs)/1 var(--font-body);letter-spacing:.04em;text-transform:uppercase;padding:var(--s1) var(--s2);border-radius:4px}
+.badge.ok{background:var(--ok-soft);color:var(--ok)}
+.badge.bad{background:var(--bad-soft);color:var(--bad)}
+.co-canvas{padding:20px;display:grid;gap:10px}
+.co-title{font-weight:600;font-size:17px}
+.co-muted{font-size:13px}
+.co-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.co-btn{border:0;color:#FFFFFF;padding:9px 14px;border-radius:6px;font-weight:600;font-size:14px;font-family:inherit}
+.co-link{font-size:14px;text-decoration:underline}
+.co-err{font-size:13px}
+
+/* Drill 6: density */
+.de-canvas{padding:16px}
+.de-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.de-card{border:1px solid #E3E7EE;border-radius:10px;padding:14px;display:grid;gap:4px}
+.de-card .n{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.de-card .m{font-size:12px;color:#6B7280}
+.de-table{width:100%;border-collapse:collapse;font-size:13px}
+.de-table th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6B7280;text-align:left;padding:6px 10px;border-bottom:1px solid #E3E7EE;font-weight:600}
+.de-table td{padding:7px 10px;border-bottom:1px solid #F0F2F6;white-space:nowrap}
+.de-table .r{text-align:right;font-variant-numeric:tabular-nums}
+.de-list{display:grid}
+.de-li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #F0F2F6;font-size:14px}
+.de-li small{display:block;color:#6B7280;font-size:12px}
+.de-li .chev{color:#9AA3B2}
+.st{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px}
+.st.lunas{background:#E3F3E8;color:#17663A}
+.st.tunggu{background:#FFF1D6;color:#8A5300}
+.st.gagal{background:#FDE4E4;color:#A61E1E}
+.quiz{display:grid;gap:var(--s4)}
+.q{display:grid;gap:var(--s2);padding-top:var(--s3);border-top:1px solid var(--line)}
+.q p{margin:0;font-size:var(--fs-body)}
+.q .fb{font-size:var(--fs-sm)}
+.q .fb.ok{color:var(--ok)}
+.q .fb.bad{color:var(--bad)}
+
+/* Drill 7: states */
+.sa-canvas{padding:16px;display:grid;gap:12px;min-height:250px;align-content:start}
+.sa-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.sa-title{font-weight:600;font-size:15px}
+.sa-btn{border:0;background:#0F6E5C;color:#FFFFFF;padding:8px 12px;border-radius:6px;font-weight:600;font-size:13px;font-family:inherit}
+.sa-btn.ghost{background:#FFFFFF;color:#1F2430;border:1px solid #CBD2DC}
+.sa-btn[disabled]{background:#E5E8EE;color:#7A8291;cursor:not-allowed}
+.sa-row{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid #F0F2F6;font-size:13px}
+.sa-row .r{font-variant-numeric:tabular-nums;font-weight:600}
+.sk{height:12px;border-radius:4px;background:#ECEFF3}
+.sa-empty{display:grid;gap:6px;justify-items:start;padding:18px 0}
+.sa-empty b{font-size:15px}
+.sa-empty p,.sa-alert p{margin:0;font-size:13px;color:#4B5563;max-width:46ch}
+.sa-alert{border:1px solid #F3C2C2;background:#FDF1F1;border-radius:8px;padding:12px;display:grid;gap:8px;justify-items:start}
+.sa-alert b{color:#A61E1E;font-size:14px}
+.sa-help{font-size:12px;color:#4B5563}
+.sa-toast{background:#14171F;color:#FFFFFF;border-radius:8px;padding:10px 12px;font-size:13px;justify-self:start}
+.sa-check{font-size:11px;color:#17663A;font-weight:600}
+.state-notes{margin:0;padding-left:1.2em;display:grid;gap:var(--s2);font-size:var(--fs-sm)}
+
+/* Drill 10: critique */
+.cr-cases{display:grid;gap:var(--s5)}
+.cr-case{display:grid;gap:var(--s3);padding-top:var(--s4);border-top:1px solid var(--line)}
+.cr-case:first-child{border-top:0;padding-top:0}
+.cr-canvas{padding:16px}
+.cr-opts{display:grid;gap:var(--s2)}
+.cr-opts label{display:grid;grid-template-columns:18px minmax(0,1fr);gap:var(--s2);align-items:start;font-size:var(--fs-body);padding:var(--s2) var(--s3);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer}
+.cr-opts input{margin-top:4px;accent-color:var(--redline)}
+.cr-opts label.right{border-color:var(--ok);background:var(--ok-soft)}
+.cr-opts label.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.mini-form{display:grid;max-width:300px}
+.mini-label{font-size:12px;color:#4B5563}
+.mini-input{border:1px solid #CBD2DC;border-radius:6px;height:30px}
+.mini-btns{display:flex;gap:8px;justify-content:flex-end}
+.mini-btn{border:0;background:#2563EB;color:#FFFFFF;padding:8px 16px;border-radius:6px;font-weight:600;font-size:13px;font-family:inherit}
+.mini-table{border-collapse:collapse;font-size:13px;width:100%;max-width:340px}
+.mini-table td,.mini-table th{padding:6px 12px;border-bottom:1px solid #EEF0F4;text-align:left}
+.mini-table th{font-size:11px;color:#6B7280;text-transform:uppercase}
+.mini-card{display:grid;gap:4px;max-width:300px}
+
+/* Rubric */
+.rubric{display:grid;gap:0;max-width:820px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.rb-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--s3);align-items:center;padding:var(--s3) var(--s4);border-bottom:1px solid var(--line)}
+.rb-row:last-child{border-bottom:0}
+.rb-row p{margin:0;font-size:var(--fs-body)}
+.rb-row small{display:block;color:var(--ink-3);font-size:var(--fs-sm)}
+@media (max-width:560px){.rb-row{grid-template-columns:minmax(0,1fr)}}
+.rb-total{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s3);flex-wrap:wrap;padding:var(--s3) var(--s4);background:var(--sunk);border-radius:0 0 var(--radius) var(--radius)}
+
+/* Appendix */
+.appendix{padding-block:var(--s8) var(--s2);display:grid;gap:var(--s5)}
+.slop-check{margin:0;padding-left:1.6em;display:grid;gap:var(--s2);columns:1}
+.slop-check li::marker{font-family:var(--font-mono);color:var(--ink-3);font-size:var(--fs-xs)}
+.sources{list-style:none;margin:0;padding:0;display:grid;gap:var(--s3)}
+.sources li{display:grid;gap:2px}
+.sources small{color:var(--ink-3);font-size:var(--fs-sm)}
+
+.footer{padding-top:var(--s7);color:var(--ink-3);font-size:var(--fs-sm)}
+
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="rail" aria-label="Daftar modul">
+    <details id="navbox" open>
+      <summary>Daftar modul</summary>
+      <ol id="nav-list">
+        <li><a href="#m0" data-nav="m0"><span class="rn">00</span><span>Persiapan lab</span><span class="rc" data-navc="m0"></span></a></li>
+        <li><a href="#m1" data-nav="m1"><span class="rn">01</span><span>Kenali slop</span><span class="rc" data-navc="m1"></span></a></li>
+        <li><a href="#m2" data-nav="m2"><span class="rn">02</span><span>Hierarki</span><span class="rc" data-navc="m2"></span></a></li>
+        <li><a href="#m3" data-nav="m3"><span class="rn">03</span><span>Spacing dan grup</span><span class="rc" data-navc="m3"></span></a></li>
+        <li><a href="#m4" data-nav="m4"><span class="rn">04</span><span>Tipografi</span><span class="rc" data-navc="m4"></span></a></li>
+        <li><a href="#m5" data-nav="m5"><span class="rn">05</span><span>Warna dan kontras</span><span class="rc" data-navc="m5"></span></a></li>
+        <li><a href="#m6" data-nav="m6"><span class="rn">06</span><span>Density dan layout</span><span class="rc" data-navc="m6"></span></a></li>
+        <li><a href="#m7" data-nav="m7"><span class="rn">07</span><span>State dan hukum UX</span><span class="rc" data-navc="m7"></span></a></li>
+        <li><a href="#m8" data-nav="m8"><span class="rn">08</span><span>Design system untuk AI</span><span class="rc" data-navc="m8"></span></a></li>
+        <li><a href="#m9" data-nav="m9"><span class="rn">09</span><span>Brief desain</span><span class="rc" data-navc="m9"></span></a></li>
+        <li><a href="#m10" data-nav="m10"><span class="rn">10</span><span>Loop kritik</span><span class="rc" data-navc="m10"></span></a></li>
+        <li><a href="#m11" data-nav="m11"><span class="rn">11</span><span>Copywork</span><span class="rc" data-navc="m11"></span></a></li>
+        <li><a href="#m12" data-nav="m12"><span class="rn">12</span><span>Belajar dari designer</span><span class="rc" data-navc="m12"></span></a></li>
+        <li><a href="#m13" data-nav="m13"><span class="rn">13</span><span>Capstone</span><span class="rc" data-navc="m13"></span></a></li>
+        <li class="sep">Lampiran</li>
+        <li><a href="#lampiran-a" data-nav="lampiran-a"><span class="rn">A</span><span>Cek anti-slop</span><span class="rc"></span></a></li>
+        <li><a href="#lampiran-b" data-nav="lampiran-b"><span class="rn">B</span><span>Kamus instruksi</span><span class="rc"></span></a></li>
+        <li><a href="#lampiran-c" data-nav="lampiran-c"><span class="rn">C</span><span>Sumber belajar</span><span class="rc"></span></a></li>
+      </ol>
+    </details>
+  </nav>
+
+  <main class="main">
+    <header class="hero">
+      <p class="eyebrow">Handbook praktik · UI/UX untuk developer frontend</p>
+      <h1>Handbook Orkestrator UI/UX</h1>
+      <p class="lead">Latihan untuk developer frontend yang ingin mengarahkan AI membuat UI yang rapi, punya hierarki, dan pas untuk penggunanya. Setiap modul dikerjakan dengan tangan: coba di halaman ini, ulangi di project, lalu centang buktinya.</p>
+      <div class="meta-row"><span>14 modul</span><span>±17 jam praktik</span><span>Rencana 4 minggu, 3 sampai 6 jam per minggu</span></div>
+      <div class="progress-card">
+        <div class="progress-top">
+          <div class="progress-num"><span id="prog-done">0</span> <small>dari <span id="prog-total">0</span> bukti selesai</small></div>
+          <span class="save-pill" id="save-pill" data-mode="local">Progres tersimpan di browser ini</span>
+        </div>
+        <div class="bar" aria-hidden="true"><span id="prog-bar"></span></div>
+        <div class="progress-actions">
+          <a class="btn" id="continue-btn" href="#m0">Lanjutkan ke Modul 0</a>
+          <a class="btn secondary" href="#rencana">Lihat rencana 4 minggu</a>
+        </div>
+      </div>
+    </header>
+
+    <section class="intro" aria-labelledby="h-prinsip">
+      <h2 id="h-prinsip">Kamu memutuskan, AI mengerjakan</h2>
+      <p>AI bisa membuat UI dengan cepat. Tanpa keputusan darimu, ia memilih yang paling rata-rata: card di mana-mana, gradien ungu, semua teks sama penting. Designer yang bagus membuat keputusan sadar soal hierarki, jarak, warna, dan kepadatan berdasarkan siapa penggunanya. Handbook ini melatih tiga hal yang kamu butuhkan untuk mengambil peran itu.</p>
+      <ul class="steps" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))">
+        <li><span class="sn">Kosakata</span><b>Bisa memberi perintah yang presisi</b><span class="d">"Jarak antar-grup 32px" lebih berguna daripada "bikin lebih rapi".</span></li>
+        <li><span class="sn">Mata</span><b>Bisa menilai hasil AI</b><span class="d">Melihat apa yang salah dan menyebut namanya.</span></li>
+        <li><span class="sn">Aturan tertulis</span><b>Bisa membuat AI konsisten</b><span class="d">Keputusanmu disimpan di DESIGN.md dan dibaca AI setiap kali membuat UI.</span></li>
+      </ul>
+    </section>
+
+    <section class="intro" aria-labelledby="h-cara">
+      <h2 id="h-cara">Cara memakai handbook ini</h2>
+      <ol class="steps">
+        <li><span class="sn">Langkah 1</span><b>Coba di halaman</b><span class="d">Setiap modul punya latihan interaktif. Geser, klik, dan lihat efeknya langsung.</span></li>
+        <li><span class="sn">Langkah 2</span><b>Kerjakan di project</b><span class="d">Ulangi di sandbox atau layar kantor bersama AI. Prompt siap salin tersedia. Ganti bagian dalam kurung siku, termasuk path file dan URL halaman.</span></li>
+        <li><span class="sn">Langkah 3</span><b>Centang bukti lulus</b><span class="d">Modul dihitung selesai saat buktinya ada. Beberapa bukti tercentang otomatis saat latihan lulus.</span></li>
+        <li><span class="sn">Langkah 4</span><b>Tulis catatan</b><span class="d">Catatan menjadi bahan DESIGN.md dan bahan diskusi dengan designer. Tersimpan otomatis.</span></li>
+      </ol>
+    </section>
+
+    <section class="intro" id="rencana" aria-labelledby="h-rencana">
+      <h2 id="h-rencana">Rencana 4 minggu</h2>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Minggu</th><th>Modul</th><th>Hasil di akhir minggu</th><th>Waktu</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>0 sampai 3</td><td>Lab siap, bisa mengenali slop, mengatur hierarki dan spacing</td><td class="num">±3,3 jam</td></tr>
+            <tr><td>2</td><td>4 sampai 7</td><td>Skala tipografi, palet warna dengan kontras lulus, density yang tepat, state lengkap</td><td class="num">±3,5 jam</td></tr>
+            <tr><td>3</td><td>8 sampai 10, Copywork #1 dan #2</td><td>DESIGN.md jalan di repo, brief desain, kebiasaan loop kritik</td><td class="num">±4,3 jam</td></tr>
+            <tr><td>4</td><td>Copywork #3, 12, 13</td><td>Review dengan designer, satu layar nyata di kantor diperbaiki</td><td class="num">±5,8 jam</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Capstone boleh berlanjut ke minggu kelima. Yang penting urutannya: modul awal menghasilkan token yang dipakai modul berikutnya.</p>
+    </section>
+
+    <!-- ===================== MODUL 0 ===================== -->
+    <section class="module" id="m0" data-module="m0" aria-labelledby="h-m0">
+      <header class="mod-head">
+        <span class="mod-num">Modul 00</span>
+        <h2 id="h-m0">Persiapan lab</h2>
+        <p class="mod-goal">Setelah modul ini kamu punya tempat latihan, kumpulan referensi, dan foto "sebelum" sebagai pembanding.</p>
+        <div class="mod-meta"><span>±30 menit</span><span data-modprog="m0"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Latihan butuh tempat yang aman untuk salah. Pakai project sandbox, jangan langsung repo kantor.</li>
+          <li>Selera desain dibangun dari melihat banyak contoh bagus. Mulai kumpulkan sekarang.</li>
+          <li>Kamu butuh titik awal yang jujur: hasil AI dari prompt polos, tanpa diperbaiki. Di Capstone kamu membandingkannya dengan hasil akhir.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Buat project sandbox bernama <code>ui-lab</code> dengan stack yang biasa kamu pakai, misalnya Vite + React + Tailwind. Pasang Tailwind sesuai dokumentasi versinya.</li>
+          <li>Buat folder <code>referensi/</code>. Isi dengan 10 screenshot layar aplikasi yang menurutmu enak dipakai: aplikasi kerja, bank, e-commerce, dashboard. Beri nama sesuai isinya, misalnya <code>tabel-transaksi-stripe.png</code>.</li>
+          <li>Pastikan AI bisa melihat halamanmu. Kalau kamu memakai Claude Code di aplikasi desktop Claude, AI sudah punya browser bawaan. Kalau di terminal, pasang Playwright MCP dengan <code>claude mcp add playwright npx @playwright/mcp@latest</code>. Uji dengan meminta AI: "Buka http://localhost:5173 dan ambil screenshot." Modul 8 sampai 13 bergantung pada langkah ini.</li>
+          <li>Jalankan prompt polos di bawah ke AI. Jangan diperbaiki sama sekali. Simpan screenshot hasilnya sebagai <code>00-sebelum.png</code>.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt polos (sengaja tanpa konteks)</span><button class="btn small secondary" type="button" data-copy="p-m0">Salin</button></div>
+        <pre id="p-m0">Buatkan halaman dashboard daftar pembayaran yang modern dan clean.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m0-a"><span>Sandbox <code>ui-lab</code> jalan di localhost.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m0-b"><span>Folder <code>referensi/</code> berisi minimal 10 screenshot layar aplikasi nyata.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m0-d"><span>AI bisa membuka sandbox di localhost dan mengambil screenshot.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m0-c"><span><code>00-sebelum.png</code> tersimpan dan belum diperbaiki.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m0">Catatan: apa kesan pertamamu melihat 00-sebelum.png? Apa yang terasa salah walau belum bisa kamu sebut namanya?</label>
+        <textarea id="note-m0" data-note="m0"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 1 ===================== -->
+    <section class="module" id="m1" data-module="m1" aria-labelledby="h-m1">
+      <header class="mod-head">
+        <span class="mod-num">Modul 01</span>
+        <h2 id="h-m1">Kenali slop</h2>
+        <p class="mod-goal">Setelah modul ini kamu bisa menunjuk ciri UI buatan AI yang generik dan menyebut perbaikannya.</p>
+        <div class="mod-meta"><span>±45 menit</span><span data-modprog="m1"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Slop adalah hasil default AI: pilihan rata-rata yang tidak didasari konteks pengguna.</li>
+          <li>Ciri slop bisa dihafal. Begitu punya nama, kamu bisa melarangnya di prompt dan di DESIGN.md.</li>
+          <li>Setiap ciri punya instruksi perbaikan yang spesifik. Jangan berhenti di "kurang bagus".</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-slop">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Ini dashboard dari prompt polos. Klik setiap bagian yang menurutmu salah. Ada 8 ciri slop. Setiap temuan memunculkan penjelasan dan instruksi perbaikannya.</p>
+        <div class="canvas">
+          <div class="slop-mock" aria-label="Contoh dashboard buatan AI">
+            <div class="sm-hero" data-slop="gradient" role="button" tabindex="0">
+              <div class="sm-hello" data-slop="copy" role="button" tabindex="0">Welcome back, Admin! <span data-slop="emoji" role="button" tabindex="0">🚀</span></div>
+              <div class="sm-sub" data-slop="copy" role="button" tabindex="0">Here's what's happening with your business today <span data-slop="emoji" role="button" tabindex="0">✨</span></div>
+            </div>
+            <div class="sm-stats" data-slop="cards" role="button" tabindex="0">
+              <div class="sm-card"><span class="sm-ico" style="background:#EDE9FE" data-slop="emoji">💰</span><div class="sm-label">Revenue</div><div class="sm-val" data-slop="equal" role="button" tabindex="0">Rp 128.400.000</div></div>
+              <div class="sm-card"><span class="sm-ico" style="background:#DCFCE7" data-slop="emoji">📈</span><div class="sm-label">Growth</div><div class="sm-val" data-slop="equal">+12,4%</div></div>
+              <div class="sm-card"><span class="sm-ico" style="background:#FEF3C7" data-slop="emoji">👥</span><div class="sm-label">Members</div><div class="sm-val" data-slop="equal">2.381</div></div>
+              <div class="sm-card"><span class="sm-ico" style="background:#FCE7F3" data-slop="emoji">🔥</span><div class="sm-label">Pending</div><div class="sm-val" data-slop="equal">17</div></div>
+            </div>
+            <div class="sm-actions" data-slop="buttons" role="button" tabindex="0">
+              <button class="sm-btn" type="button" tabindex="-1" style="background:#10B981">Export</button>
+              <button class="sm-btn" type="button" tabindex="-1" style="background:#F59E0B">Filter</button>
+              <button class="sm-btn" type="button" tabindex="-1" style="background:#EC4899">Add New</button>
+            </div>
+            <div class="sm-panels">
+              <div class="sm-panel">
+                <div class="sm-ptitle">Recent Transactions</div>
+                <table class="sm-table" data-slop="center" role="button" tabindex="0">
+                  <tr><th>Name</th><th>Amount</th><th>Status</th></tr>
+                  <tr><td>Budi S.</td><td>Rp 1.250.000</td><td>Paid</td></tr>
+                  <tr><td>Sari W.</td><td>Rp 349.000</td><td>Paid</td></tr>
+                  <tr><td>Andi P.</td><td>Rp 12.500.000</td><td>Pending</td></tr>
+                </table>
+              </div>
+              <div class="sm-panel">
+                <div class="sm-ptitle">Notifications</div>
+                <div class="sm-empty" data-slop="empty" role="button" tabindex="0">No data.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-top">
+          <span class="counter"><span id="slop-count">0</span><span id="slop-count-l">/8 ditemukan</span></span>
+          <span class="progress-actions"><button class="btn small secondary" type="button" id="slop-reveal">Tunjukkan semua</button><button class="btn small secondary" type="button" id="slop-reset">Ulangi</button></span>
+        </div>
+        <p class="drill-intro" id="slop-hint" hidden>Jawaban sudah ditunjukkan, jadi bukti otomatis tidak tercentang. Klik Ulangi lalu cari sendiri.</p>
+        <ol class="slop-list" id="slop-list">
+          <li data-slop-item="gradient" hidden><b>Gradien dekoratif.</b> Gradien ungu-biru tanpa fungsi, salah satu tanda paling umum desain buatan AI.<span class="fix">Instruksi: "Hapus gradien. Header pakai background netral dari DESIGN.md."</span></li>
+          <li data-slop-item="emoji" hidden><b>Emoji sebagai ikon.</b> Ukuran dan gayanya tidak seragam dan tidak cocok untuk aplikasi kerja.<span class="fix">Instruksi: "Ganti emoji dengan ikon dari satu set (misalnya Lucide), 16px, warna teks redup."</span></li>
+          <li data-slop-item="copy" hidden><b>Sapaan generik.</b> Kalimat basa-basi berbahasa Inggris di produk berbahasa Indonesia. Tidak memberi informasi apa pun.<span class="fix">Instruksi: "Ganti sapaan dengan judul yang menyebut isi halaman: 'Pembayaran, Oktober 2026'."</span></li>
+          <li data-slop-item="cards" hidden><b>Card di mana-mana.</b> Setiap angka dibungkus card dengan shadow dan radius yang sama. Card jadi kehilangan arti.<span class="fix">Instruksi: "Gabungkan statistik ke satu baris tanpa card. Pisahkan dengan garis tipis."</span></li>
+          <li data-slop-item="equal" hidden><b>Tidak ada fokus utama.</b> Empat angka sama besar dan sama tebal. Pengguna tidak tahu harus melihat yang mana dulu.<span class="fix">Instruksi: "Jadikan Revenue angka utama, ukuran --text-h1 (31px) semibold. Angka lain --text-h3 (20px). Label pakai bahasa Indonesia."</span></li>
+          <li data-slop-item="buttons" hidden><b>Tiga tombol, tiga warna.</b> Semuanya terlihat seperti aksi utama, dan warnanya tidak punya arti.<span class="fix">Instruksi: "Satu tombol primer saja: 'Tambah pembayaran'. Export dan Filter jadi tombol sekunder."</span></li>
+          <li data-slop-item="center" hidden><b>Tabel rata tengah.</b> Nominal rata tengah sulit dibandingkan karena digitnya tidak sejajar.<span class="fix">Instruksi: "Teks rata kiri, angka rata kanan dengan tabular-nums."</span></li>
+          <li data-slop-item="empty" hidden><b>Empty state kosong makna.</b> Hanya "No data." Pengguna tidak tahu kenapa kosong dan harus berbuat apa.<span class="fix">Instruksi: "Empty state: jelaskan kenapa kosong dan beri satu aksi, misalnya 'Belum ada notifikasi. Atur notifikasi pembayaran.'"</span></li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Buka <code>00-sebelum.png</code> berdampingan dengan <a href="#lampiran-a">Lampiran A: cek anti-slop</a>.</li>
+          <li>Tandai setiap ciri slop yang muncul. Tulis nomornya di catatan.</li>
+          <li>Untuk 3 ciri pertama, tulis instruksi perbaikannya dengan gaya latihan di atas. Belum perlu dijalankan.</li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m1-a"><span>Menemukan 8 dari 8 ciri slop di latihan halaman.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m1-b"><span>Menandai minimal 5 ciri slop di <code>00-sebelum.png</code> memakai Lampiran A.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m1">Catatan: ciri slop mana yang muncul di 00-sebelum.png? Mana yang paling sering kamu lihat di hasil AI selama ini?</label>
+        <textarea id="note-m1" data-note="m1"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 2 ===================== -->
+    <section class="module" id="m2" data-module="m2" aria-labelledby="h-m2">
+      <header class="mod-head">
+        <span class="mod-num">Modul 02</span>
+        <h2 id="h-m2">Hierarki</h2>
+        <p class="mod-goal">Setelah modul ini kamu bisa menentukan satu info utama di sebuah layar dan memerintah AI membuatnya menonjol.</p>
+        <div class="mod-meta"><span>±60 menit</span><span data-modprog="m2"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Satu layar atau satu card punya satu info utama. Kalau semuanya penting, tidak ada yang penting.</li>
+          <li>Alat hierarki: ukuran, bobot huruf, warna (gelap ke redup), posisi, dan ruang kosong di sekitarnya.</li>
+          <li>Menurunkan yang tidak penting sering lebih efektif daripada membesarkan yang penting. Label dibuat lebih kecil dan redup dari nilainya.</li>
+          <li>Squint test: sipitkan mata atau buramkan layar. Yang masih terbaca adalah yang paling menonjol. Pastikan itu info utamamu.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-hier">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Konteks: staf finance memeriksa pembayaran yang masuk. Atur peran setiap info. Awalnya semua "Sekunder", sama seperti hasil AI tanpa arahan. Nyalakan squint untuk menguji.</p>
+        <div class="drill-grid two">
+          <div class="controls">
+            <div class="hi-table" id="hi-controls"></div>
+            <label class="weights"><input type="checkbox" id="hi-squint"> <span>Mode squint (buramkan pratinjau)</span></label>
+          </div>
+          <div class="canvas hi-canvas" id="hi-canvas">
+            <div class="hi-card">
+              <div class="hi-top"><span class="hi-pill" data-f="status">Lunas</span></div>
+              <div data-f="nominal">Rp 1.250.000</div>
+              <div data-f="produk">Langganan Premium 12 bulan, Budi Santoso</div>
+              <div class="hi-meta"><span data-f="tanggal">3 Okt 2026, 14.12</span><span data-f="metode">BCA Virtual Account</span></div>
+              <div data-f="invoice">INV/2026/10/0042</div>
+            </div>
+          </div>
+        </div>
+        <div class="verdict" id="hi-verdict" aria-live="polite"></div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Pilih satu layar di sandbox (boleh hasil Modul 0).</li>
+          <li>Tulis peringkat informasinya di catatan: 1 utama, 2 sampai 3 sekunder, sisanya tersier.</li>
+          <li>Jalankan prompt di bawah setelah kamu isi bagian dalam kurung siku.</li>
+          <li>Squint test: di DevTools, tambahkan <code>filter: blur(3px)</code> pada <code>body</code>. Yang masih terbaca harus info utamamu.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt hierarki</span><button class="btn small secondary" type="button" data-copy="p-m2">Salin</button></div>
+        <pre id="p-m2">File: [path file, mis. src/pages/Pembayaran.tsx]. Halaman: http://localhost:5173/[route].
+Halaman itu dipakai [siapa] untuk [tugas utama].
+Info utama: [satu info]. Buat paling menonjol: ukuran terbesar, bobot tebal, warna teks paling gelap.
+Info sekunder: [2-3 info]. Ukuran normal.
+Info tersier: [sisanya]. Lebih kecil dan warna teks redup.
+Label lebih kecil dan lebih redup dari nilainya.
+Jangan menambah warna baru untuk menonjolkan sesuatu. Pakai ukuran, bobot, dan posisi dulu.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m2-a"><span>Latihan halaman: tepat 1 info utama dan ada info tersier.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m2-b"><span>Peringkat informasi untuk 1 layar tertulis di catatan.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m2-c"><span>Squint test di layar itu: yang masih terbaca adalah info utama.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m2">Catatan: layar apa, info utamanya apa, mana yang sekunder dan tersier?</label>
+        <textarea id="note-m2" data-note="m2"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 3 ===================== -->
+    <section class="module" id="m3" data-module="m3" aria-labelledby="h-m3">
+      <header class="mod-head">
+        <span class="mod-num">Modul 03</span>
+        <h2 id="h-m3">Spacing dan pengelompokan</h2>
+        <p class="mod-goal">Setelah modul ini kamu bisa membuat grup terbaca hanya dengan jarak, dan menetapkan spacing scale untuk AI.</p>
+        <div class="mod-meta"><span>±60 menit</span><span data-modprog="m3"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Pakai skala jarak tetap: 4, 8, 12, 16, 24, 32, 48, 64. Nilai di luar skala adalah tanda keputusan acak.</li>
+          <li>Proximity: yang berdekatan terbaca satu grup. Jarak di dalam grup harus jelas lebih kecil dari jarak antar-grup, patokannya minimal 2 kali.</li>
+          <li>Label harus lebih dekat ke input-nya daripada ke field lain.</li>
+          <li>Kalau ragu, mulai dari terlalu lega lalu kurangi. Layar sesak lebih sulit diperbaiki.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-space">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Geser ketiga jarak sampai dua grup form terbaca terpisah. Garis magenta menunjukkan ukurannya, seperti tanda ukur (redline) di file serah-terima dari designer. Nilai yang kamu pilih disimpan sebagai token.</p>
+        <div class="drill-grid two">
+          <div class="controls">
+            <div class="ctl"><label for="sp-l">Label ke input: <output id="sp-l-o"></output></label><input type="range" id="sp-l" min="0" max="3" step="1"></div>
+            <div class="ctl"><label for="sp-f">Antar-field dalam grup: <output id="sp-f-o"></output></label><input type="range" id="sp-f" min="0" max="7" step="1"></div>
+            <div class="ctl"><label for="sp-g">Antar-grup: <output id="sp-g-o"></output></label><input type="range" id="sp-g" min="0" max="7" step="1"></div>
+            <label class="weights"><input type="checkbox" id="sp-marks" checked> <span>Tampilkan ukuran</span></label>
+          </div>
+          <div class="canvas sp-canvas"><div class="sp-form" id="sp-form"></div></div>
+        </div>
+        <div class="verdict" id="sp-verdict" aria-live="polite"></div>
+        <div class="copybox">
+          <div class="copy-row"><span class="copy-label">Token spacing kamu</span><button class="btn small secondary" type="button" data-copy="sp-token">Salin</button></div>
+          <pre id="sp-token"></pre>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Buka halaman Modul 0 di browser. Inspect 10 elemen, lalu catat nilai margin, padding, dan gap dari tab Computed.</li>
+          <li>Hitung berapa nilai berbeda yang kamu temukan. Tulis di catatan.</li>
+          <li>Jalankan prompt di bawah. Cek ulang 10 elemen yang sama.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt spacing</span><button class="btn small secondary" type="button" data-copy="p-m3">Salin</button></div>
+        <pre id="p-m3">File: [path file]. Halaman: http://localhost:5173/[route].
+Refactor spacing halaman itu ke skala 4, 8, 12, 16, 24, 32, 48, 64 (px). Jangan pakai nilai di luar skala.
+Jarak label ke input: [nilai]. Jarak antar-field dalam satu grup: [nilai]. Jarak antar-grup: [nilai].
+Jarak di dalam grup harus selalu lebih kecil dari jarak antar-grup.
+Setelah selesai, daftar semua nilai margin, padding, dan gap yang masih dipakai.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m3-a"><span>Latihan halaman: antar-grup minimal 2 kali antar-field, dan label menempel ke input-nya.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m3-b"><span>Audit 10 elemen di halaman Modul 0 tercatat.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m3-c"><span>Halaman di sandbox hanya memakai nilai dari spacing scale.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m3">Catatan: berapa nilai jarak berbeda sebelum dan sesudah? Apa yang berubah saat dilihat?</label>
+        <textarea id="note-m3" data-note="m3"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 4 ===================== -->
+    <section class="module" id="m4" data-module="m4" aria-labelledby="h-m4">
+      <header class="mod-head">
+        <span class="mod-num">Modul 04</span>
+        <h2 id="h-m4">Tipografi</h2>
+        <p class="mod-goal">Setelah modul ini kamu punya type scale sendiri dan bisa membatasi AI ke ukuran dan bobot yang konsisten.</p>
+        <div class="mod-meta"><span>±45 menit</span><span data-modprog="m4"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Cukup 4 sampai 6 ukuran font dan 2 sampai 3 bobot. Lebih dari itu, hierarki jadi kabur.</li>
+          <li>Type scale dibuat dari ukuran dasar dikali rasio. Aplikasi kerja cocok dengan rasio kecil (1.2). Landing page cocok dengan rasio lebih besar (1.25 sampai 1.333).</li>
+          <li>Line height: teks isi sekitar 1.5, judul sekitar 1.1 sampai 1.25. Panjang baris paragraf 45 sampai 75 karakter.</li>
+          <li>Angka di tabel pakai <code>font-variant-numeric: tabular-nums</code> supaya digitnya sejajar.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-type">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Pilih ukuran dasar, rasio, dan bobot. Pratinjau menunjukkan seluruh skala dengan teks dari produk pembayaran.</p>
+        <div class="drill-grid two">
+          <div class="controls">
+            <div class="ctl"><label for="ty-base">Ukuran dasar (teks isi)</label>
+              <select id="ty-base"><option value="14">14px</option><option value="15">15px</option><option value="16">16px</option><option value="17">17px</option></select></div>
+            <div class="ctl"><label for="ty-ratio">Rasio</label>
+              <select id="ty-ratio"><option value="1.125">1.125 (major second), sangat rapat</option><option value="1.2">1.2 (minor third), aplikasi kerja</option><option value="1.25">1.25 (major third), serba guna</option><option value="1.333">1.333 (perfect fourth), landing page</option></select></div>
+            <div class="ctl"><span class="ctl-label">Bobot yang dipakai</span>
+              <div class="weights" id="ty-weights">
+                <label><input type="checkbox" value="400"> 400</label>
+                <label><input type="checkbox" value="500"> 500</label>
+                <label><input type="checkbox" value="600"> 600</label>
+                <label><input type="checkbox" value="700"> 700</label>
+              </div>
+            </div>
+            <div class="verdict" id="ty-verdict" aria-live="polite"></div>
+          </div>
+          <div class="canvas"><div class="ty-specimen" id="ty-specimen"></div></div>
+        </div>
+        <div class="copybox">
+          <div class="copy-row"><span class="copy-label">Token tipografi kamu</span><button class="btn small secondary" type="button" data-copy="ty-token">Salin</button></div>
+          <pre id="ty-token"></pre>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Di Chrome DevTools, buka panel CSS Overview (menu titik tiga, More tools, CSS overview), lalu klik Capture overview. Catat jumlah ukuran font di halaman Modul 0.</li>
+          <li>Jalankan prompt di bawah dengan token tipografi dari latihan.</li>
+          <li>Capture ulang. Pastikan hanya ukuran dari skalamu yang tersisa.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt tipografi</span><button class="btn small secondary" type="button" data-copy="p-m4">Salin</button></div>
+        <pre id="p-m4">File: [path file].
+Pakai hanya ukuran font dan bobot di token berikut. Jangan pakai ukuran lain.
+[tempel token tipografi]
+Kepala tabel: ukuran caption, huruf kapital, letter-spacing 0.06em.
+Label field: ukuran caption atau body, huruf biasa, warna teks redup.
+Kolom angka di tabel rata kanan dengan font-variant-numeric: tabular-nums.
+Teks isi line-height 1.5, judul line-height 1.2.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m4-a"><span>Skala tipografi sudah kupilih dan kusalin.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m4-b"><span>Halaman di sandbox memakai maksimal 6 ukuran font dan 3 bobot.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m4-c"><span>Kolom angka di tabel memakai tabular-nums dan rata kanan.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m4">Catatan: ada berapa ukuran font sebelum dan sesudah? Skala apa yang kamu pilih dan kenapa?</label>
+        <textarea id="note-m4" data-note="m4"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 5 ===================== -->
+    <section class="module" id="m5" data-module="m5" aria-labelledby="h-m5">
+      <header class="mod-head">
+        <span class="mod-num">Modul 05</span>
+        <h2 id="h-m5">Warna dan kontras</h2>
+        <p class="mod-goal">Setelah modul ini kamu punya palet berbasis peran yang lulus uji kontras, dan bisa memaksa AI memakai satu warna aksi.</p>
+        <div class="mod-meta"><span>±60 menit</span><span data-modprog="m5"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Warna dipilih menurut peran. Netral untuk sebagian besar layar (background, teks, border). Satu warna primer untuk aksi. Warna semantik untuk arti: sukses, peringatan, bahaya.</li>
+          <li>Abu-abu dengan sedikit hue terasa disengaja. Abu-abu murni seperti <code>#888</code> terasa default.</li>
+          <li>Kontras teks minimal 4.5:1 terhadap latarnya (WCAG AA). Teks besar (minimal 24px, atau 18,66px tebal) cukup 3:1. Komponen UI seperti border input, ikon, dan focus ring juga minimal 3:1.</li>
+          <li>Jangan bedakan status dengan warna saja. Tambahkan teks atau ikon untuk orang yang buta warna.</li>
+          <li>Sebagian besar layar memakai netral: background, permukaan, teks, dan border. Warna primer hanya muncul di aksi utama dan link. Warna semantik hanya untuk status.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-color">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Atur warna primer, hue abu-abu, dan warna semantik. Semua pasangan teks harus lulus 4.5:1. Awalnya teks redup memakai neutral-500 dan gagal, sama seperti abu-abu pilihan AI. Perbaiki dengan memilih tingkat netral yang lebih gelap.</p>
+        <div class="drill-grid two">
+          <div class="controls">
+            <div class="ctl"><span class="ctl-label">Primer (warna aksi)</span><div class="color-row"><input type="color" id="co-primary" aria-label="Warna primer"><code id="co-primary-v"></code></div></div>
+            <div class="ctl"><label for="co-hue">Hue abu-abu: <output id="co-hue-o"></output></label><input type="range" id="co-hue" min="0" max="360" step="5"></div>
+            <div class="ctl"><label for="co-sat">Saturasi abu-abu: <output id="co-sat-o"></output></label><input type="range" id="co-sat" min="0" max="24" step="1"></div>
+            <div class="ctl"><label for="co-muted">Tingkat netral untuk teks redup</label>
+              <select id="co-muted"><option value="400">neutral-400</option><option value="500">neutral-500</option><option value="600">neutral-600</option><option value="700">neutral-700</option></select></div>
+            <div class="ctl"><span class="ctl-label">Semantik</span>
+              <div class="color-row"><input type="color" id="co-success" aria-label="Warna sukses"><span>sukses</span><input type="color" id="co-warning" aria-label="Warna peringatan"><span>peringatan</span><input type="color" id="co-danger" aria-label="Warna bahaya"><span>bahaya</span></div></div>
+          </div>
+          <div class="controls">
+            <div class="ramp" id="co-ramp" aria-label="Skala netral"></div>
+            <div class="canvas co-canvas" id="co-preview"></div>
+          </div>
+        </div>
+        <div class="pairs" id="co-pairs"></div>
+        <div class="copybox">
+          <div class="copy-row"><span class="copy-label">Token warna kamu</span><button class="btn small secondary" type="button" data-copy="co-token">Salin</button></div>
+          <pre id="co-token"></pre>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Di CSS Overview, catat jumlah warna di halaman Modul 0.</li>
+          <li>Jalankan prompt di bawah dengan token warnamu.</li>
+          <li>Capture ulang. Cek: satu warna aksi, status punya teks atau ikon, teks redup tidak terlalu pucat.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt warna</span><button class="btn small secondary" type="button" data-copy="p-m5">Salin</button></div>
+        <pre id="p-m5">File: [path file].
+Ganti semua warna di halaman itu dengan token berikut. Jangan pakai hex di luar token.
+[tempel token warna]
+Background dan teks memakai netral. Hanya aksi utama yang memakai --primary.
+Status memakai warna semantik dan selalu disertai teks atau ikon.
+Semua teks minimal kontras 4.5:1 terhadap latarnya.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m5-a"><span>Latihan halaman: semua pasangan teks lulus 4.5:1.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m5-b"><span>Halaman di sandbox hanya punya 1 warna untuk aksi.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m5-c"><span>Status di halaman itu tidak dibedakan dengan warna saja.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m5">Catatan: berapa warna sebelum dan sesudah? Pasangan mana yang tadinya gagal kontras?</label>
+        <textarea id="note-m5" data-note="m5"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 6 ===================== -->
+    <section class="module" id="m6" data-module="m6" aria-labelledby="h-m6">
+      <header class="mod-head">
+        <span class="mod-num">Modul 06</span>
+        <h2 id="h-m6">Density dan layout</h2>
+        <p class="mod-goal">Setelah modul ini kamu bisa memilih kepadatan dan bentuk layout dari tugas pengguna, dan menjelaskan alasannya.</p>
+        <div class="mod-meta"><span>±45 menit</span><span data-modprog="m6"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Density mengikuti seberapa sering layar dipakai dan apa tugasnya. Dipakai tiap hari untuk memindai dan membandingkan: padat. Dibuka sekali untuk dibaca atau dibeli: lega.</li>
+          <li>Tabel untuk data seragam yang dibandingkan antar-kolom. Card untuk item yang sedikit, visual, atau beda jenis. Daftar untuk item yang dipilih untuk masuk lebih dalam.</li>
+          <li>AI cenderung memilih card untuk semua hal. Itu keputusan yang harus kamu ambil alih.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-density">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Data yang sama dalam tiga bentuk. Bandingkan, lalu jawab tiga skenario di bawahnya.</p>
+        <fieldset class="seg" id="de-tabs" style="border:1px solid var(--line-strong);padding:0;margin:0">
+          <legend class="vh">Bentuk layout</legend>
+          <label><input type="radio" name="de-tab" value="kartu"><span>Card</span></label>
+          <label><input type="radio" name="de-tab" value="tabel" checked><span>Tabel</span></label>
+          <label><input type="radio" name="de-tab" value="daftar"><span>Daftar</span></label>
+        </fieldset>
+        <div class="canvas de-canvas" id="de-view"></div>
+        <div class="quiz" id="de-quiz"></div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Pilih satu layar nyata di kantor yang pernah kamu bangun.</li>
+          <li>Tulis di catatan: siapa penggunanya, seberapa sering dibuka, tugas utamanya, lalu density dan bentuk yang cocok.</li>
+          <li>Jalankan prompt di bawah di sandbox dengan data contoh dari layar itu.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt density</span><button class="btn small secondary" type="button" data-copy="p-m6">Salin</button></div>
+        <pre id="p-m6">File: [path file]. Halaman: http://localhost:5173/[route].
+Halaman itu dipakai [siapa], dibuka [seberapa sering], untuk [tugas utama].
+Ubah layout menjadi [tabel padat / card / daftar] karena [alasan].
+Untuk tabel padat: tinggi baris 40px, padding sel 8px 12px, kepala tabel sticky, angka rata kanan.
+Jangan bungkus baris atau angka dengan card.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m6-a"><span>Kuis density 3 dari 3 benar.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m6-b"><span>Alasan density untuk 1 layar nyata tertulis: siapa, seberapa sering, tugasnya.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m6">Catatan: layar apa, siapa penggunanya, seberapa sering, tugasnya apa, dan density yang kamu pilih?</label>
+        <textarea id="note-m6" data-note="m6"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 7 ===================== -->
+    <section class="module" id="m7" data-module="m7" aria-labelledby="h-m7">
+      <header class="mod-head">
+        <span class="mod-num">Modul 07</span>
+        <h2 id="h-m7">State dan hukum UX</h2>
+        <p class="mod-goal">Setelah modul ini kamu bisa memeriksa kelengkapan state sebuah fitur dan menyebut hukum UX yang dilanggar.</p>
+        <div class="mod-meta"><span>±60 menit</span><span data-modprog="m7"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Setiap data yang dimuat punya minimal empat kondisi: ada isi, memuat, kosong, dan error. AI biasanya hanya membuat yang pertama.</li>
+          <li>Pesan error menjelaskan apa yang gagal dan cara memperbaikinya. Input pengguna tidak boleh hilang.</li>
+          <li>Tombol nonaktif menjelaskan kenapa tidak bisa dipakai. Aksi yang merusak data butuh konfirmasi atau undo.</li>
+          <li>Empat hukum UX yang paling sering terpakai: Fitts (target besar dan dekat lebih cepat diklik), Hick (makin banyak pilihan, makin lama memutuskan), Jakob (pengguna berharap aplikasimu bekerja seperti aplikasi lain yang mereka kenal), Proximity (yang berdekatan terbaca satu grup).</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-states">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Satu panel, enam state. Klik setiap state dan baca apa yang wajib ada.</p>
+        <fieldset class="seg" id="sa-tabs" style="border:1px solid var(--line-strong);padding:0;margin:0">
+          <legend class="vh">State</legend>
+          <label><input type="radio" name="sa-tab" value="default" checked><span>Default</span></label>
+          <label><input type="radio" name="sa-tab" value="loading"><span>Memuat</span></label>
+          <label><input type="radio" name="sa-tab" value="empty"><span>Kosong</span></label>
+          <label><input type="radio" name="sa-tab" value="error"><span>Error</span></label>
+          <label><input type="radio" name="sa-tab" value="disabled"><span>Nonaktif</span></label>
+          <label><input type="radio" name="sa-tab" value="success"><span>Sukses</span></label>
+        </fieldset>
+        <div class="drill-grid two">
+          <div class="canvas sa-canvas" id="sa-view"></div>
+          <div class="controls"><span class="ctl-label">Yang wajib ada</span><ul class="state-notes" id="sa-notes"></ul></div>
+        </div>
+        <h3>Kuis hukum UX</h3>
+        <div class="quiz" id="law-quiz"></div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Ambil satu fitur yang pernah kamu bangun di kantor.</li>
+          <li>Salin tabel state di bawah ke catatan dan isi. Tandai state yang belum ada.</li>
+          <li>Salin komponen fitur itu ke sandbox, lalu jalankan prompt di bawah di sana. Kalau mau langsung di repo kantor, kerjakan di branch baru sesuai alur timmu. Uji setiap state dengan memalsukan kondisinya: DevTools, tab Network, Offline untuk error, dan data kosong untuk empty state.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Tabel state</span><button class="btn small secondary" type="button" data-copy="p-m7a">Salin</button></div>
+        <pre id="p-m7a">| State    | Sudah ada? | Yang tampil | Aksi yang tersedia |
+| Default  |            |             |                    |
+| Memuat   |            |             |                    |
+| Kosong   |            |             |                    |
+| Error    |            |             |                    |
+| Nonaktif |            |             |                    |
+| Sukses   |            |             |                    |</pre>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt state</span><button class="btn small secondary" type="button" data-copy="p-m7b">Salin</button></div>
+        <pre id="p-m7b">File: [path komponen fitur].
+Lengkapi state untuk fitur itu: [state yang belum ada].
+Memuat: skeleton seukuran konten, tombol aksi nonaktif dengan label "Memuat...".
+Kosong: jelaskan kenapa kosong dan beri satu aksi berikutnya.
+Error: sebut apa yang gagal dan cara memperbaikinya, beri tombol "Coba lagi", jangan hapus input atau filter pengguna.
+Nonaktif: tampilkan alasan di bawah tombol.
+Sukses: konfirmasi singkat dan perubahan langsung terlihat di layar.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m7-a"><span>Kuis hukum UX 4 dari 4 benar.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m7-b"><span>Tabel state untuk 1 fitur yang pernah kubangun sudah terisi.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m7-c"><span>Minimal 2 state yang belum ada sudah ditambahkan ke fitur itu.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m7">Catatan: tabel state fiturmu. State mana yang ternyata belum ada?</label>
+        <textarea id="note-m7" data-note="m7"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 8 ===================== -->
+    <section class="module" id="m8" data-module="m8" aria-labelledby="h-m8">
+      <header class="mod-head">
+        <span class="mod-num">Modul 08</span>
+        <h2 id="h-m8">Design system untuk AI</h2>
+        <p class="mod-goal">Setelah modul ini AI-mu membaca aturan desain tertulis setiap kali membuat UI, dan hasilnya konsisten tanpa kamu ulang-ulang.</p>
+        <div class="mod-meta"><span>±60 menit</span><span data-modprog="m8"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>AI mengikuti aturan yang selalu ada di konteksnya. Simpan keputusan desain di satu file di repo, lalu impor dari CLAUDE.md dengan <code>@DESIGN.md</code> supaya file itu ikut termuat di setiap sesi.</li>
+          <li>Isinya empat bagian: token (warna, tipografi, spacing, radius), cara pakai token, aturan komponen termasuk larangan, dan daftar cek sebelum selesai.</li>
+          <li>Kalau kantormu sudah punya design system atau file Figma dari designer, itu sumbernya. Salin tokennya ke DESIGN.md, jangan membuat versi sendiri.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-dsmd">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">DESIGN.md di bawah disusun otomatis dari pilihanmu di Modul 3, 4, dan 5. Pilih aturan komponen, tambahkan aturanmu sendiri, lalu salin.</p>
+        <div class="verdict" id="ds-verdict" aria-live="polite"></div>
+        <div class="drill-grid two">
+          <div class="controls">
+            <div class="ctl"><label for="ds-radius">Radius sudut</label>
+              <select id="ds-radius"><option value="4">4px, tegas</option><option value="6">6px, netral</option><option value="8">8px, lembut</option></select></div>
+            <div class="ctl"><span class="ctl-label">Aturan komponen</span><div class="checks" id="ds-rules"></div></div>
+            <div class="ctl"><label for="ds-custom">Aturan tambahan (satu per baris)</label><textarea id="ds-custom" rows="4" placeholder="Contoh: Format uang selalu Rp 1.250.000, tanpa desimal."></textarea></div>
+          </div>
+          <div class="copybox">
+            <div class="copy-row"><span class="copy-label">DESIGN.md</span><button class="btn small" type="button" data-copy="ds-out">Salin DESIGN.md</button></div>
+            <pre id="ds-out"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Simpan hasil di atas sebagai <code>DESIGN.md</code> di root sandbox.</li>
+          <li>Tambahkan baris di bawah ke <code>CLAUDE.md</code> di repo yang sama. Kalau tool AI-mu memakai <code>AGENTS.md</code>, tulis "Baca DESIGN.md sebelum membuat atau mengubah UI" secara eksplisit, karena tidak semua tool mendukung impor dengan <code>@</code>.</li>
+          <li>Buka sesi AI baru (di Claude Code ketik <code>/clear</code>). Jalankan prompt polos Modul 0, ditambah satu kalimat: "Buat sebagai halaman baru di route /dashboard-2, jangan ubah halaman lain." Simpan hasilnya sebagai <code>08-dengan-design-md.png</code> dan bandingkan dengan <code>00-sebelum.png</code>.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Baris untuk CLAUDE.md</span><button class="btn small secondary" type="button" data-copy="p-m8">Salin</button></div>
+        <pre id="p-m8">## UI
+Aturan desain ada di @DESIGN.md. Patuhi semua token dan aturannya setiap kali membuat atau mengubah UI.
+Kalau permintaan bertentangan dengan DESIGN.md, tanyakan dulu sebelum mengerjakan.
+Setelah selesai, buka halamannya di browser, ambil screenshot, dan cek hasilnya terhadap bagian "Cek sebelum selesai" di DESIGN.md.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m8-a"><span><code>DESIGN.md</code> tersimpan di repo sandbox.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m8-b"><span><code>CLAUDE.md</code> mengimpor <code>@DESIGN.md</code> (atau <code>AGENTS.md</code> menyuruh membacanya).</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m8-c"><span>Prompt polos diulang di sesi baru, <code>08-dengan-design-md.png</code> tersimpan dan dibandingkan.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m8">Catatan: apa beda paling terlihat antara 00-sebelum dan 08-dengan-design-md? Aturan apa yang masih dilanggar AI?</label>
+        <textarea id="note-m8" data-note="m8"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 9 ===================== -->
+    <section class="module" id="m9" data-module="m9" aria-labelledby="h-m9">
+      <header class="mod-head">
+        <span class="mod-num">Modul 09</span>
+        <h2 id="h-m9">Brief desain untuk AI</h2>
+        <p class="mod-goal">Setelah modul ini prompt UI-mu berisi konteks dan keputusan, sehingga AI tidak perlu menebak.</p>
+        <div class="mod-meta"><span>±30 menit</span><span data-modprog="m9"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Designer bekerja dari brief: siapa penggunanya, apa tugasnya, info mana yang paling penting. AI butuh hal yang sama.</li>
+          <li>"Modern dan clean" adalah selera dan tidak bisa diukur. "Nominal dan status paling menonjol, tabel padat" adalah keputusan.</li>
+          <li>Sertakan referensi dan sebut bagian mana yang ditiru. Sertakan juga larangan.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-brief">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Isian di bawah berisi contoh. Ganti dengan layarmu sendiri. Prompt di kanan tersusun otomatis.</p>
+        <div class="drill-grid two">
+          <div class="controls" id="br-form">
+            <div class="ctl"><label for="br-layar">Layar</label><input type="text" id="br-layar" data-brief="layar"></div>
+            <div class="ctl"><label for="br-pengguna">Pengguna</label><input type="text" id="br-pengguna" data-brief="pengguna"></div>
+            <div class="ctl"><label for="br-tugas">Tugas utama</label><input type="text" id="br-tugas" data-brief="tugas"></div>
+            <div class="ctl"><label for="br-utama">Info paling penting</label><input type="text" id="br-utama" data-brief="utama"></div>
+            <div class="ctl"><label for="br-pendukung">Info pendukung</label><input type="text" id="br-pendukung" data-brief="pendukung"></div>
+            <div class="ctl"><label for="br-density">Density</label><select id="br-density" data-brief="density"><option value="padat">Padat (tabel, baris ringkas)</option><option value="sedang">Sedang</option><option value="lega">Lega (banyak ruang, sedikit item)</option></select></div>
+            <div class="ctl"><label for="br-aksi">Aksi utama</label><input type="text" id="br-aksi" data-brief="aksi"></div>
+            <div class="ctl"><label for="br-ref">Referensi</label><input type="text" id="br-ref" data-brief="ref"></div>
+            <div class="ctl"><label for="br-larangan">Larangan</label><input type="text" id="br-larangan" data-brief="larangan"></div>
+            <button class="btn small secondary" type="button" id="br-reset">Kembalikan contoh</button>
+          </div>
+          <div class="copybox">
+            <div class="copy-row"><span class="copy-label">Brief untuk AI</span><button class="btn small" type="button" data-copy="br-out">Salin brief</button></div>
+            <pre id="br-out"></pre>
+          </div>
+        </div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Isi formulir brief di atas untuk satu layar nyata.</li>
+          <li>Jalankan brief di sandbox yang sudah punya DESIGN.md.</li>
+          <li>Simpan hasil sebagai <code>09-dengan-brief.png</code>. Taruh berdampingan dengan <code>00-sebelum.png</code> dan <code>08-dengan-design-md.png</code>.</li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m9-a"><span>Semua isian formulir brief sudah kuganti dengan layarku sendiri.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m9-b"><span><code>09-dengan-brief.png</code> tersimpan dan dibandingkan.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m9">Catatan: apa yang berubah setelah AI tahu konteks pengguna?</label>
+        <textarea id="note-m9" data-note="m9"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 10 ===================== -->
+    <section class="module" id="m10" data-module="m10" aria-labelledby="h-m10">
+      <header class="mod-head">
+        <span class="mod-num">Modul 10</span>
+        <h2 id="h-m10">Loop kritik</h2>
+        <p class="mod-goal">Setelah modul ini kamu bisa memberi kritik yang langsung bisa dieksekusi AI, dalam putaran yang terarah.</p>
+        <div class="mod-meta"><span>±45 menit</span><span data-modprog="m10"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Kritik yang baik punya tiga bagian: lokasi, gejala, dan instruksi yang terukur. Contoh: "Form alamat: jarak antar-grup sama dengan antar-field. Jadikan 32px dan 12px."</li>
+          <li>Satu putaran berisi 3 sampai 5 poin. Lebih banyak dari itu, AI mulai melewatkan sebagian.</li>
+          <li>Urutan perbaikan: layout dan hierarki, spacing, tipografi, warna, lalu detail. Memoles warna sebelum hierarkinya benar membuang waktu.</li>
+          <li>Minta AI menilai hasilnya sendiri terhadap DESIGN.md dulu. Kamu yang memutuskan poin mana yang dikerjakan.</li>
+        </ul>
+      </div>
+      <div class="drill" id="drill-crit">
+        <span class="drill-tag">Latihan di halaman</span>
+        <p class="drill-intro">Empat potongan layar, masing-masing punya satu masalah. Pilih kritik yang paling bisa langsung dieksekusi.</p>
+        <div class="cr-cases" id="cr-cases"></div>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Pakai layar hasil Modul 9.</li>
+          <li>Jalankan prompt penilaian diri di bawah. Pilih maksimal 5 poin yang kamu setujui.</li>
+          <li>Tulis kritikmu dengan format lokasi, gejala, instruksi. Pakai <a href="#lampiran-b">Lampiran B</a> untuk kosakatanya.</li>
+          <li>Screenshot hasilnya. Ulangi sampai 3 putaran dan catat setiap putaran.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt penilaian diri</span><button class="btn small secondary" type="button" data-copy="p-m10">Salin</button></div>
+        <pre id="p-m10">Buka http://localhost:5173/[route] di browser dan ambil screenshot. Nilai hasilnya terhadap DESIGN.md.
+Sebutkan maksimal 5 masalah, urutkan dari: layout dan hierarki, spacing, tipografi, warna, detail.
+Untuk setiap masalah tulis: lokasi, gejala, dan instruksi perbaikan yang terukur (angka atau token).
+Jangan memperbaiki apa pun dulu. Tunggu aku memilih poinnya.</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m10-a"><span>Latihan kritik 4 dari 4 benar.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m10-b"><span>3 putaran kritik tercatat di catatan modul ini.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m10">Catatan: putaran 1, 2, 3. Kritik yang kamu berikan dan hasilnya.</label>
+        <textarea id="note-m10" data-note="m10"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 11 ===================== -->
+    <section class="module" id="m11" data-module="m11" aria-labelledby="h-m11">
+      <header class="mod-head">
+        <span class="mod-num">Modul 11</span>
+        <h2 id="h-m11">Copywork</h2>
+        <p class="mod-goal">Setelah modul ini matamu terlatih menemukan beda kecil antara desain bagus dan hasil AI. Dikerjakan 3 kali: dua kali di minggu 3, sekali di minggu 4.</p>
+        <div class="mod-meta"><span>±60 menit per putaran</span><span data-modprog="m11"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Pelukis belajar dengan menyalin karya master. Menyalin layar yang bagus memaksamu melihat setiap jarak, ukuran, dan warna.</li>
+          <li>Tujuannya melatih mata, bukan menghasilkan layar. Hasil copywork tidak perlu dipakai di mana pun.</li>
+          <li>Teknik paling efektif: tumpuk hasil di atas referensi dengan opacity 50%. Beda sekecil 4px jadi terlihat.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Pilih satu screenshot dari <code>referensi/</code>.</li>
+          <li>Jalankan prompt di bawah. Claude Code bisa membaca gambar langsung dari path file.</li>
+          <li>Taruh hasilnya berdampingan dengan referensi. Untuk menumpuk: salin screenshot ke folder <code>public/</code>, lalu minta AI menambahkan sementara <code>&lt;img src="/[nama-file].png" style="position:fixed;top:0;left:0;width:[lebar screenshot]px;opacity:.5;pointer-events:none;z-index:9999"&gt;</code>. Samakan lebar jendela browser dengan lebar screenshot.</li>
+          <li>Tulis 5 perbedaan di tabel. Pakai istilah dari <a href="#lampiran-b">Lampiran B</a>.</li>
+          <li>Kirim kelima instruksi itu ke AI. Ulangi maksimal 2 putaran supaya tetap sekitar 60 menit.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Prompt copywork</span><button class="btn small secondary" type="button" data-copy="p-m11a">Salin</button></div>
+        <pre id="p-m11a">Buat ulang layar di referensi/[nama-file].png semirip mungkin sebagai halaman baru /copywork-[n] di sandbox.
+Pakai teks dan data yang sama. Jangan menambah atau mengurangi elemen.
+Ukur jarak, ukuran font, dan warna dari screenshot. Tulis nilai yang kamu pakai di komentar CSS.</pre>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Tabel 5 perbedaan</span><button class="btn small secondary" type="button" data-copy="p-m11b">Salin</button></div>
+        <pre id="p-m11b">| # | Area | Di referensi | Di hasil AI | Instruksi perbaikan |
+| 1 |      |              |             |                     |
+| 2 |      |              |             |                     |
+| 3 |      |              |             |                     |
+| 4 |      |              |             |                     |
+| 5 |      |              |             |                     |</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m11-a"><span>Copywork #1 selesai dengan 5 perbedaan tertulis.</span><em>minggu 3</em></label>
+          <label class="check"><input type="checkbox" data-ex="m11-b"><span>Copywork #2 selesai dengan 5 perbedaan tertulis.</span><em>minggu 3</em></label>
+          <label class="check"><input type="checkbox" data-ex="m11-c"><span>Copywork #3 selesai dengan 5 perbedaan tertulis.</span><em>minggu 4</em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m11">Catatan: untuk setiap copywork, tempel tabel 5 perbedaanmu.</label>
+        <textarea id="note-m11" data-note="m11"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 12 ===================== -->
+    <section class="module" id="m12" data-module="m12" aria-labelledby="h-m12">
+      <header class="mod-head">
+        <span class="mod-num">Modul 12</span>
+        <h2 id="h-m12">Belajar dari designer</h2>
+        <p class="mod-goal">Setelah modul ini kamu punya aturan desain dari orang yang ahli, dan jalur untuk terus bertanya.</p>
+        <div class="mod-meta"><span>±45 menit plus sesi review</span><span data-modprog="m12"></span></div>
+      </header>
+      <div class="block">
+        <h3>Konsep inti</h3>
+        <ul>
+          <li>Jawaban "kenapa" dari designer adalah bahan paling berharga. Setiap jawaban bisa jadi satu aturan di DESIGN.md.</li>
+          <li>Minta waktu singkat dan bawa bahan konkret: satu layar sebelum dan sesudah, plus tiga pertanyaan spesifik.</li>
+          <li>Kalau tidak ada designer, lakukan tes 5 detik ke rekan kerja: tunjukkan layar 5 detik, tutup, lalu tanya apa yang mereka ingat.</li>
+        </ul>
+      </div>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Minta 15 menit ke designer di kantor. Bawa hasil Modul 10 dan screenshot sebelumnya.</li>
+          <li>Pilih 3 pertanyaan dari daftar di bawah.</li>
+          <li>Tulis jawabannya di catatan, lalu ubah setiap jawaban menjadi aturan di DESIGN.md.</li>
+        </ol>
+      </div>
+      <div class="copybox">
+        <div class="copy-row"><span class="copy-label">Daftar pertanyaan</span><button class="btn small secondary" type="button" data-copy="p-m12">Salin</button></div>
+        <pre id="p-m12">1. Kalau kamu hanya boleh mengubah satu hal di layar ini, apa? Kenapa?
+2. Apa yang pertama kamu lihat? Apakah itu yang seharusnya dilihat pertama?
+3. Jarak mana yang terasa salah?
+4. Kenapa ukuran atau warna ini dipakai di sini? Aturannya apa?
+5. Ada aturan design system kita yang aku langgar?
+6. Referensi apa yang biasa kamu pakai untuk layar sejenis?
+7. Kalau layar ini dibuka di HP, apa yang pertama kamu korbankan?</pre>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m12-a"><span>1 sesi review dengan designer (atau tes 5 detik dengan rekan) sudah berjalan.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m12-b"><span>Minimal 3 aturan baru dari designer, atau 3 temuan tes 5 detik yang sudah diubah jadi aturan, masuk ke DESIGN.md.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m12">Catatan: pertanyaan yang kamu ajukan, jawabannya, dan aturan baru yang lahir dari situ.</label>
+        <textarea id="note-m12" data-note="m12"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== MODUL 13 ===================== -->
+    <section class="module" id="m13" data-module="m13" aria-labelledby="h-m13">
+      <header class="mod-head">
+        <span class="mod-num">Modul 13</span>
+        <h2 id="h-m13">Capstone: satu layar nyata</h2>
+        <p class="mod-goal">Setelah modul ini kamu sudah memperbaiki satu layar nyata di kantor dengan semua alat dari modul sebelumnya, dan punya bukti sebelum-sesudah.</p>
+        <div class="mod-meta"><span>±4 jam</span><span data-modprog="m13"></span></div>
+      </header>
+      <div class="block">
+        <h3>Kerjakan di project</h3>
+        <ol>
+          <li>Pilih satu layar yang sudah ada di produk kantor dan sering dipakai. Ikuti alur kerja timmu (branch, review) seperti biasa.</li>
+          <li>Screenshot kondisi sekarang sebagai "sebelum". Baca 10 baris rubrik di bawah dan tulis skor "sebelum" per baris di catatan. Widget rubrik di halaman ini khusus untuk hasil "sesudah".</li>
+          <li>Pastikan repo itu punya DESIGN.md. Kalau kantor punya design system, pakai itu sebagai sumbernya.</li>
+          <li>Tulis brief (Modul 9), jalankan, lalu lakukan 3 putaran kritik (Modul 10).</li>
+          <li>Lengkapi semua state (Modul 7) dan cek kontras (Modul 5).</li>
+          <li>Minta review designer (Modul 12). Terapkan masukannya.</li>
+          <li>Screenshot "sesudah", nilai ulang dengan rubrik, dan tulis ringkasannya di catatan.</li>
+        </ol>
+      </div>
+      <div class="block">
+        <h3>Rubrik penilaian</h3>
+        <p>Nilai hasil "sesudah". 0 = belum, 1 = sebagian, 2 = sudah. Skor tersimpan otomatis.</p>
+        <div class="rubric" id="rubric"></div>
+      </div>
+      <div class="block">
+        <h3>Bukti lulus</h3>
+        <div class="checks">
+          <label class="check"><input type="checkbox" data-ex="m13-a"><span>Screenshot sebelum dan sesudah layar nyata tersimpan.</span><em></em></label>
+          <label class="check"><input type="checkbox" data-ex="m13-b"><span>Skor rubrik minimal 15 dari 20.</span><em>otomatis</em></label>
+          <label class="check"><input type="checkbox" data-ex="m13-c"><span>Hasilnya sudah ditunjukkan ke designer atau lead.</span><em></em></label>
+        </div>
+      </div>
+      <div class="note">
+        <label for="note-m13">Catatan: masalah layar lama, keputusan desain yang kamu ambil, skor sebelum dan sesudah, masukan designer atau lead.</label>
+        <textarea id="note-m13" data-note="m13"></textarea>
+      </div>
+    </section>
+
+    <!-- ===================== LAMPIRAN ===================== -->
+    <section class="appendix" id="lampiran-a" aria-labelledby="h-la">
+      <span class="mod-num">Lampiran A</span>
+      <h2 id="h-la">Cek anti-slop</h2>
+      <p>Pakai daftar ini setiap kali menilai hasil AI. Satu temuan berarti satu instruksi perbaikan.</p>
+      <ol class="slop-check">
+        <li>Gradien dekoratif, terutama ungu ke biru, tanpa fungsi.</li>
+        <li>Emoji dipakai sebagai ikon atau penanda section.</li>
+        <li>Sapaan generik ("Welcome back!") atau bahasa campur di produk berbahasa Indonesia.</li>
+        <li>Semua blok dibungkus card dengan shadow dan radius yang sama.</li>
+        <li>Semua angka atau judul sama besar. Tidak ada fokus utama.</li>
+        <li>Lebih dari satu tombol yang terlihat seperti aksi utama.</li>
+        <li>Lebih dari satu warna aksen tanpa arti.</li>
+        <li>Semua isi rata tengah, termasuk tabel dan angka.</li>
+        <li>Jarak antar-elemen sama semua, sehingga grup tidak terbaca.</li>
+        <li>Lebih dari 6 ukuran font atau lebih dari 3 bobot.</li>
+        <li>Abu-abu murni yang tidak senada dengan palet.</li>
+        <li>Teks redup dengan kontras di bawah 4.5:1.</li>
+        <li>Tidak ada state memuat, kosong, atau error.</li>
+        <li>Teks tombol "Submit", "OK", atau "Click here" yang tidak menyebut aksinya.</li>
+        <li>Data contoh seperti "Lorem ipsum" atau "John Doe" tertinggal di layar.</li>
+      </ol>
+    </section>
+
+    <section class="appendix" id="lampiran-b" aria-labelledby="h-lb">
+      <span class="mod-num">Lampiran B</span>
+      <h2 id="h-lb">Kamus instruksi</h2>
+      <p>Istilah yang perlu kamu pakai saat memerintah AI, artinya, dan contoh kalimat yang bisa langsung dikirim.</p>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Istilah</th><th>Artinya</th><th>Contoh instruksi ke AI</th></tr></thead>
+          <tbody>
+            <tr><td>Hierarki visual</td><td>Urutan mana yang dilihat lebih dulu</td><td>"Nominal jadi info utama: --text-h1 semibold. Label --text-caption, warna --text-muted."</td></tr>
+            <tr><td>Focal point</td><td>Satu titik yang paling menarik mata</td><td>"Layar ini hanya punya satu focal point: tombol Bayar."</td></tr>
+            <tr><td>De-emphasize</td><td>Menurunkan yang tidak penting</td><td>"Turunkan nomor invoice ke --text-caption, warna --text-muted."</td></tr>
+            <tr><td>Proximity</td><td>Yang berdekatan terbaca satu grup</td><td>"Label 8px ke input-nya, 16px ke field berikutnya."</td></tr>
+            <tr><td>Spacing scale</td><td>Daftar jarak yang boleh dipakai</td><td>"Pakai hanya 4, 8, 12, 16, 24, 32, 48, 64."</td></tr>
+            <tr><td>Alignment</td><td>Elemen menempel ke garis yang sama</td><td>"Judul, label, dan isi tabel rata kiri ke garis yang sama."</td></tr>
+            <tr><td>Type scale</td><td>Daftar ukuran font yang boleh dipakai</td><td>"Ukuran font hanya 13, 16, 20, 25, 31px."</td></tr>
+            <tr><td>Line height</td><td>Jarak antarbaris</td><td>"Teks isi line-height 1.5, judul 1.2."</td></tr>
+            <tr><td>Measure</td><td>Panjang baris teks</td><td>"Paragraf maksimal 65 karakter: max-width 65ch."</td></tr>
+            <tr><td>Tabular numbers</td><td>Digit dengan lebar sama</td><td>"Kolom nominal: tabular-nums, rata kanan."</td></tr>
+            <tr><td>Neutral</td><td>Abu-abu untuk teks, border, background</td><td>"Abu-abu pakai hue 220 saturasi rendah, bukan abu-abu murni."</td></tr>
+            <tr><td>Semantic color</td><td>Warna yang punya arti</td><td>"Merah hanya untuk error dan aksi yang menghapus data."</td></tr>
+            <tr><td>Contrast ratio</td><td>Beda terang teks dan latarnya</td><td>"Teks keterangan minimal 4.5:1 terhadap background."</td></tr>
+            <tr><td>Density</td><td>Kepadatan informasi</td><td>"Density padat: tinggi baris 40px, padding sel 8px 12px."</td></tr>
+            <tr><td>Affordance</td><td>Tanda bahwa sesuatu bisa diklik atau diisi</td><td>"Link diberi garis bawah. Tombol punya fill atau border."</td></tr>
+            <tr><td>State</td><td>Kondisi sebuah komponen</td><td>"Tambahkan state memuat, kosong, error, dan nonaktif."</td></tr>
+            <tr><td>Empty state</td><td>Tampilan saat belum ada data</td><td>"Empty state: jelaskan kenapa kosong dan beri satu tombol aksi."</td></tr>
+            <tr><td>Skeleton</td><td>Placeholder berbentuk konten saat memuat</td><td>"Saat memuat, tampilkan skeleton seukuran baris tabel."</td></tr>
+            <tr><td>Design token</td><td>Nilai desain bernama yang dipakai ulang</td><td>"Jangan pakai hex langsung. Pakai var(--primary)."</td></tr>
+            <tr><td>Variant</td><td>Versi komponen untuk peran berbeda</td><td>"Tombol punya tiga variant: primary, secondary, ghost."</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="appendix" id="lampiran-c" aria-labelledby="h-lc">
+      <span class="mod-num">Lampiran C</span>
+      <h2 id="h-lc">Sumber belajar</h2>
+      <ul class="sources">
+        <li><a href="https://www.refactoringui.com/" target="_blank" rel="noopener">Refactoring UI</a><small>Adam Wathan dan Steve Schoger. Buku desain paling praktis untuk developer. Hampir semua modul di sini sejalan dengannya.</small></li>
+        <li><a href="https://lawsofux.com/" target="_blank" rel="noopener">Laws of UX</a><small>Jon Yablonski. Ringkasan hukum UX dengan contoh, termasuk Fitts, Hick, dan Jakob.</small></li>
+        <li><a href="https://practicaltypography.com/" target="_blank" rel="noopener">Practical Typography</a><small>Matthew Butterick. Tipografi untuk orang yang bukan designer, gratis dibaca online.</small></li>
+        <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html" target="_blank" rel="noopener">WCAG 2.2: Contrast (Minimum)</a><small>Dasar angka 4.5:1 untuk teks dan 3:1 untuk teks besar di Modul 5.</small></li>
+        <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html" target="_blank" rel="noopener">WCAG 2.2: Non-text Contrast</a><small>Dasar angka 3:1 untuk border input, ikon, dan focus ring.</small></li>
+        <li><a href="https://m3.material.io/" target="_blank" rel="noopener">Material Design 3</a><small>Contoh design system lengkap dengan token, komponen, dan aturan pemakaian.</small></li>
+        <li><a href="https://mobbin.com/" target="_blank" rel="noopener">Mobbin</a><small>Kumpulan screenshot layar aplikasi nyata untuk mengisi folder referensi.</small></li>
+      </ul>
+    </section>
+
+    <footer class="footer">
+      <p>Progres, catatan, dan token disimpan per akun dan hanya terlihat olehmu. Kalau halaman dibuka tanpa login, progres hanya tersimpan di browser yang sedang dipakai.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s, r){ return (r || document).querySelector(s); };
+  var $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  var KEY = "handbook-orkestrator-ui-v1";
+  var SCALE = [4, 8, 12, 16, 24, 32, 48, 64];
+  var LABEL_SCALE = [4, 8, 12, 16];
+  var DEFAULT_TOKENS = {
+    labelGap: 8, fieldGap: 16, groupGap: 16,
+    typeBase: 16, typeRatio: 1.25, weights: [400, 600],
+    primary: "#0F6E5C", nHue: 220, nSat: 10, mutedStep: "500",
+    success: "#1E7D45", warning: "#9A5B00", danger: "#C42B2B",
+    radius: 6
+  };
+  var RULES = [
+    { id: "one-primary", text: "Satu tombol primer per layar atau section. Aksi lain memakai variant secondary atau ghost." },
+    { id: "cards", text: "Card hanya untuk item yang berdiri sendiri atau beda jenis. Data seragam memakai tabel atau daftar." },
+    { id: "numbers", text: "Angka di tabel rata kanan dan memakai font-variant-numeric: tabular-nums." },
+    { id: "labels", text: "Label lebih kecil dan lebih redup dari nilainya." },
+    { id: "no-emoji", text: "Jangan pakai emoji sebagai ikon. Pakai satu set ikon (misalnya Lucide) ukuran 16px." },
+    { id: "no-gradient", text: "Jangan pakai gradien dekoratif." },
+    { id: "states", text: "Setiap data yang dimuat punya state memuat (skeleton), kosong (alasan dan satu aksi), dan error (penyebab dan cara memperbaiki)." },
+    { id: "status", text: "Status tidak dibedakan dengan warna saja. Selalu ada teks atau ikon." },
+    { id: "buttons-copy", text: "Teks tombol menyebut aksinya, misalnya \"Simpan pembayaran\". Jangan \"OK\" atau \"Submit\"." },
+    { id: "lang", text: "Bahasa UI: Indonesia, konsisten di semua layar." }
+  ];
+  var BRIEF_EX = {
+    layar: "Halaman daftar pembayaran masuk",
+    pengguna: "Staf finance, membuka halaman ini puluhan kali sehari di laptop",
+    tugas: "Menemukan pembayaran tertentu dan memastikan statusnya",
+    utama: "Nominal dan status pembayaran",
+    pendukung: "Nama member, produk, tanggal, metode bayar, nomor invoice",
+    density: "padat",
+    aksi: "Tandai sudah dicek",
+    ref: "referensi/tabel-transaksi-stripe.png: tiru kepadatan dan perataan angkanya, jangan warnanya",
+    larangan: "Tanpa card per baris, tanpa gradien, tanpa emoji"
+  };
+
+  var state = { done: {}, notes: {}, tokens: clone(DEFAULT_TOKENS), rubric: {}, quiz: {}, rules: { on: {}, custom: "" }, brief: {} };
+
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+  /* ---------- Storage: db per-viewer with localStorage fallback ---------- */
+  var PARTS = {
+    progress: function(){ return { done: state.done, rubric: state.rubric, quiz: state.quiz }; },
+    notes: function(){ return { notes: state.notes }; },
+    tokens: function(){ return { tokens: state.tokens }; },
+    forms: function(){ return { rules: state.rules, brief: state.brief }; }
+  };
+  var PKEY = KEY + ":pending";
+  var store = { mode: "local", db: null, uid: null, writers: {}, pending: {} };
+  try { store.pending = JSON.parse(localStorage.getItem(PKEY)) || {}; } catch (e) { store.pending = {}; }
+
+  function saveLocal(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function savePending(){ try { localStorage.setItem(PKEY, JSON.stringify(store.pending)); } catch (e) {} }
+  function loadLocal(){ try { var raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; } catch (e) { return null; } }
+
+  function mergeState(src){
+    if (!src || typeof src !== "object") return;
+    ["done", "notes", "rubric", "quiz"].forEach(function(k){ if (src[k] && typeof src[k] === "object") state[k] = Object.assign({}, state[k], clone(src[k])); });
+    if (src.tokens && typeof src.tokens === "object") state.tokens = Object.assign({}, clone(DEFAULT_TOKENS), clone(src.tokens));
+    if (src.rules && typeof src.rules === "object") state.rules = { on: Object.assign({}, (src.rules.on || {})), custom: String(src.rules.custom || "") };
+    if (src.brief && typeof src.brief === "object") state.brief = Object.assign({}, clone(src.brief));
+  }
+  /* The account copy wins for every part that has no unsaved local change. */
+  function applyRemote(part, data){
+    var d = clone(data || {});
+    var obj = function(v){ return v && typeof v === "object" ? v : {}; };
+    if (part === "progress") { state.done = obj(d.done); state.rubric = obj(d.rubric); state.quiz = obj(d.quiz); }
+    else if (part === "notes") { state.notes = obj(d.notes); }
+    else if (part === "tokens") { state.tokens = Object.assign({}, clone(DEFAULT_TOKENS), obj(d.tokens)); }
+    else if (part === "forms") { var r = obj(d.rules); state.rules = { on: obj(r.on), custom: String(r.custom || "") }; state.brief = obj(d.brief); }
+  }
+
+  function setStatus(mode){
+    var pill = $("#save-pill");
+    pill.dataset.mode = mode;
+    pill.textContent = mode === "db" ? "Progres tersimpan di akunmu" : mode === "saving" ? "Menyimpan..." : "Progres tersimpan di browser ini";
+  }
+
+  function save(part){
+    saveLocal();
+    store.pending[part] = true;
+    savePending();
+    if (store.mode === "db") schedule(part); else setStatus("local");
+  }
+  function schedule(part){
+    var w = store.writers[part] || (store.writers[part] = { t: null, busy: false, dirty: false });
+    clearTimeout(w.t);
+    setStatus("saving");
+    w.t = setTimeout(function(){ w.t = null; flush(part, 0); }, 700);
+  }
+  function flush(part, attempt){
+    var w = store.writers[part];
+    if (!w || store.mode !== "db") return;
+    if (w.busy) { w.dirty = true; return; }
+    w.busy = true;
+    var body = clone(PARTS[part]());
+    store.db.doc("data/users/" + store.uid + "/" + part).set(body).then(function(){
+      w.busy = false;
+      if (w.dirty) { w.dirty = false; flush(part, 0); return; }
+      if (!w.t) { delete store.pending[part]; savePending(); }
+      if (store.mode === "db" && !anyBusy()) setStatus("db");
+    }, function(err){
+      w.busy = false;
+      if (err && err.code === "unavailable" && attempt < 1) {
+        setTimeout(function(){ flush(part, attempt + 1); }, 500 + Math.floor(Math.random() * 1000));
+      } else {
+        store.mode = "local";
+        setStatus("local");
+      }
+    });
+  }
+  function anyBusy(){ return Object.keys(store.writers).some(function(k){ var w = store.writers[k]; return w.busy || w.dirty || !!w.t; }); }
+  function flushNow(){
+    saveLocal(); savePending();
+    if (store.mode !== "db") return;
+    Object.keys(store.writers).forEach(function(p){ var w = store.writers[p]; if (w.t) { clearTimeout(w.t); w.t = null; flush(p, 0); } });
+  }
+  window.addEventListener("pagehide", flushNow);
+  document.addEventListener("visibilitychange", function(){ if (document.visibilityState === "hidden") flushNow(); });
+
+  function initStorage(){
+    var local = loadLocal();
+    if (local) mergeState(local);
+    renderAll();
+    if (!window.claude || typeof window.claude.use !== "function") { setStatus("local"); return; }
+    Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function(res){
+      var db = res[0], user = res[1];
+      if (!db || !user) { setStatus("local"); return; }
+      return user.id().then(function(uid){
+        if (!uid) { setStatus("local"); return; }
+        store.db = db; store.uid = uid;
+        var names = Object.keys(PARTS);
+        var load = function(retried){
+          return Promise.all(names.map(function(p){ return db.doc("data/users/" + uid + "/" + p).get(); })).then(function(snaps){
+            store.mode = "db";
+            var changed = false;
+            snaps.forEach(function(snap, i){
+              if (snap.exists && !store.pending[names[i]]) { applyRemote(names[i], snap.data()); changed = true; }
+            });
+            if (changed) { renderAll(); saveLocal(); }
+            names.forEach(function(p, i){ if (store.pending[p] || (!snaps[i].exists && local)) schedule(p); });
+            if (!anyBusy()) setStatus("db");
+          }, function(err){
+            if (err && err.code === "unavailable" && !retried) {
+              return new Promise(function(r){ setTimeout(r, 500 + Math.floor(Math.random() * 1000)); }).then(function(){ return load(true); });
+            }
+            throw err;
+          });
+        };
+        return load(false);
+      });
+    }).catch(function(){ store.mode = "local"; setStatus("local"); });
+  }
+
+  /* ---------- Progress & checks ---------- */
+  function markDone(id){
+    if (id in state.done) return;
+    state.done[id] = true;
+    renderChecks();
+    save("progress");
+  }
+  function renderChecks(){
+    var boxes = $$("[data-ex]");
+    boxes.forEach(function(b){
+      b.checked = !!state.done[b.dataset.ex];
+      b.closest(".check").classList.toggle("is-done", b.checked);
+    });
+    var total = boxes.length, done = boxes.filter(function(b){ return b.checked; }).length;
+    $("#prog-done").textContent = done;
+    $("#prog-total").textContent = total;
+    $("#prog-bar").style.width = (total ? (done / total * 100) : 0) + "%";
+    var next = null;
+    $$("[data-module]").forEach(function(sec){
+      var m = sec.dataset.module;
+      var bs = $$("[data-ex]", sec);
+      var d = bs.filter(function(b){ return b.checked; }).length;
+      var label = d + "/" + bs.length;
+      var mp = $('[data-modprog="' + m + '"]');
+      if (mp) { mp.textContent = d === bs.length ? "Selesai " + label : "Bukti " + label; mp.classList.toggle("done", d === bs.length); }
+      var nc = $('[data-navc="' + m + '"]');
+      if (nc) nc.textContent = label;
+      var na = $('[data-nav="' + m + '"]');
+      if (na) na.classList.toggle("complete", d === bs.length);
+      if (!next && d < bs.length) next = sec;
+    });
+    var btn = $("#continue-btn");
+    if (next) {
+      var num = parseInt(next.dataset.module.slice(1), 10);
+      btn.href = "#" + next.id;
+      btn.textContent = (done === 0 ? "Mulai dari Modul " : "Lanjutkan ke Modul ") + num;
+    } else {
+      btn.href = "#m13";
+      btn.textContent = "Semua bukti selesai";
+    }
+  }
+  function renderNotes(){
+    $$("[data-note]").forEach(function(t){ if (document.activeElement !== t) t.value = state.notes[t.dataset.note] || ""; });
+  }
+
+  document.addEventListener("change", function(e){
+    var t = e.target;
+    if (t.matches("[data-ex]")) {
+      state.done[t.dataset.ex] = t.checked;
+      renderChecks();
+      save("progress");
+    }
+  });
+  document.addEventListener("input", function(e){
+    var t = e.target;
+    if (t.matches("[data-note]")) {
+      state.notes[t.dataset.note] = t.value;
+      save("notes");
+    }
+  });
+
+  /* ---------- Copy buttons ---------- */
+  function flash(btn, text){
+    var orig = btn.dataset.orig || btn.textContent;
+    btn.dataset.orig = orig;
+    btn.textContent = text;
+    setTimeout(function(){ btn.textContent = orig; }, 1800);
+  }
+  function selectText(el){
+    try { var r = document.createRange(); r.selectNodeContents(el); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); } catch (e) {}
+  }
+  document.addEventListener("click", function(e){
+    var b = e.target.closest("[data-copy]");
+    if (!b) return;
+    var el = document.getElementById(b.dataset.copy);
+    if (!el) return;
+    var text = el.textContent;
+    var fallback = function(){
+      selectText(el);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (err) {}
+      flash(b, ok ? "Tersalin" : "Teks sudah dipilih, salin manual");
+    };
+    try {
+      navigator.clipboard.writeText(text).then(function(){ flash(b, "Tersalin"); }, fallback);
+    } catch (err) { fallback(); }
+  });
+
+  /* ---------- Drill 1: slop ---------- */
+  var SLOP_KEYS = ["gradient", "emoji", "copy", "cards", "equal", "buttons", "center", "empty"];
+  function renderSlop(){
+    var found = state.quiz.slop || {};
+    $$(".slop-mock [data-slop]").forEach(function(el){ el.classList.toggle("found", !!found[el.dataset.slop]); });
+    var order = state.quiz.slopOrder || [];
+    var list = $("#slop-list");
+    $$("[data-slop-item]", list).forEach(function(li){ li.hidden = !found[li.dataset.slopItem]; });
+    order.forEach(function(k){ var li = $('[data-slop-item="' + k + '"]', list); if (li) list.appendChild(li); });
+    var n = SLOP_KEYS.filter(function(k){ return found[k]; }).length;
+    $("#slop-count").textContent = n;
+    $("#slop-count-l").textContent = state.quiz.slopRevealed ? "/8 (ditunjukkan)" : "/8 ditemukan";
+    $("#slop-hint").hidden = !state.quiz.slopRevealed;
+    if (n === SLOP_KEYS.length && !state.quiz.slopRevealed) markDone("m1-a");
+  }
+  function hitSlop(el){
+    var k = el.dataset.slop;
+    state.quiz.slop = Object.assign({}, state.quiz.slop);
+    if (state.quiz.slop[k]) return;
+    state.quiz.slop[k] = true;
+    state.quiz.slopOrder = (state.quiz.slopOrder || []).concat([k]);
+    renderSlop();
+    save("progress");
+  }
+  $(".slop-mock").addEventListener("click", function(e){
+    var el = e.target.closest("[data-slop]");
+    if (el) { e.preventDefault(); hitSlop(el); }
+  });
+  $(".slop-mock").addEventListener("keydown", function(e){
+    if (e.key !== "Enter" && e.key !== " ") return;
+    var el = e.target.closest("[data-slop]");
+    if (el) { e.preventDefault(); hitSlop(el); }
+  });
+  $("#slop-reveal").addEventListener("click", function(){
+    var found = Object.assign({}, state.quiz.slop);
+    var missing = SLOP_KEYS.filter(function(k){ return !found[k]; });
+    if (!missing.length) return;
+    missing.forEach(function(k){ found[k] = true; });
+    state.quiz.slop = found;
+    state.quiz.slopOrder = (state.quiz.slopOrder || []).concat(missing);
+    state.quiz.slopRevealed = true;
+    renderSlop();
+    save("progress");
+  });
+  $("#slop-reset").addEventListener("click", function(){
+    state.quiz.slop = {}; state.quiz.slopOrder = []; state.quiz.slopRevealed = false;
+    renderSlop();
+    save("progress");
+  });
+
+  /* ---------- Drill 2: hierarchy ---------- */
+  var HI_FIELDS = [
+    { k: "nominal", label: "Nominal" }, { k: "status", label: "Status" }, { k: "produk", label: "Produk dan nama" },
+    { k: "tanggal", label: "Tanggal" }, { k: "metode", label: "Metode bayar" }, { k: "invoice", label: "Nomor invoice" }
+  ];
+  var ROLE_NAMES = { p: "Utama", s: "Sekunder", t: "Tersier" };
+  function buildHierControls(){
+    var host = $("#hi-controls");
+    HI_FIELDS.forEach(function(f){
+      var row = document.createElement("div");
+      row.className = "hi-row-ctl";
+      var name = document.createElement("span");
+      name.className = "hi-name"; name.id = "hi-n-" + f.k; name.textContent = f.label;
+      var seg = document.createElement("div");
+      seg.className = "seg"; seg.setAttribute("role", "radiogroup"); seg.setAttribute("aria-labelledby", name.id);
+      ["p", "s", "t"].forEach(function(r){
+        var lab = document.createElement("label");
+        var inp = document.createElement("input");
+        inp.type = "radio"; inp.name = "hi-" + f.k; inp.value = r; inp.id = "hi-" + f.k + "-" + r;
+        var sp = document.createElement("span"); sp.textContent = ROLE_NAMES[r];
+        lab.appendChild(inp); lab.appendChild(sp); seg.appendChild(lab);
+      });
+      row.appendChild(name); row.appendChild(seg); host.appendChild(row);
+    });
+    host.addEventListener("change", function(e){
+      var t = e.target; if (!t.name || t.name.indexOf("hi-") !== 0) return;
+      state.quiz.hier = Object.assign({}, state.quiz.hier);
+      state.quiz.hier[t.name.slice(3)] = t.value;
+      renderHier(); save("progress");
+    });
+    $("#hi-squint").addEventListener("change", function(e){ $("#hi-canvas").classList.toggle("squint", e.target.checked); });
+  }
+  function renderHier(){
+    var h = state.quiz.hier || {};
+    var counts = { p: 0, s: 0, t: 0 }, primary = null;
+    HI_FIELDS.forEach(function(f){
+      var r = h[f.k] || "s";
+      counts[r]++;
+      if (r === "p") primary = f.k;
+      var inp = $("#hi-" + f.k + "-" + r); if (inp) inp.checked = true;
+      var el = $('#hi-canvas [data-f="' + f.k + '"]');
+      el.classList.remove("role-p", "role-s", "role-t"); el.classList.add("role-" + r);
+    });
+    var v = $("#hi-verdict"), cls = "bad", msg;
+    if (counts.p === 0) msg = "<b>Belum ada fokus utama.</b> Semua info bersaing. Pilih satu info yang paling dicari staf finance.";
+    else if (counts.p > 1) msg = "<b>Ada " + counts.p + " info utama.</b> Kalau semua utama, tidak ada yang utama. Sisakan satu.";
+    else if (counts.t === 0) msg = "<b>Fokus sudah ada, tapi info pendukung masih ramai.</b> Turunkan info yang jarang dicari, misalnya nomor invoice dan metode bayar, ke Tersier.";
+    else {
+      cls = "ok";
+      msg = primary === "nominal"
+        ? "<b>Lulus.</b> Satu fokus utama dan info pendukung sudah turun. Nyalakan squint: nominal harus tetap terbaca."
+        : "<b>Lulus secara struktur.</b> Untuk staf finance yang memeriksa pembayaran, biasanya nominal yang dicari pertama. Pilihanmu sah kalau alasannya kuat, tulis alasannya di catatan.";
+      markDone("m2-a");
+    }
+    v.className = "verdict " + cls; v.innerHTML = msg;
+  }
+
+  /* ---------- Drill 3: spacing ---------- */
+  function idxOf(arr, v, fallback){ var i = arr.indexOf(v); return i < 0 ? fallback : i; }
+  function renderSpacing(){
+    var t = state.tokens, L = t.labelGap, F = t.fieldGap, G = t.groupGap;
+    $("#sp-l").value = idxOf(LABEL_SCALE, L, 1); $("#sp-f").value = idxOf(SCALE, F, 3); $("#sp-g").value = idxOf(SCALE, G, 3);
+    $("#sp-l-o").textContent = L + "px"; $("#sp-f-o").textContent = F + "px"; $("#sp-g-o").textContent = G + "px";
+    var marks = $("#sp-marks").checked;
+    var form = $("#sp-form");
+    form.textContent = "";
+    function gap(px, label, big){
+      var d = document.createElement("div");
+      d.className = "sp-gap" + (marks && big ? " mark" : "") + (px <= 8 ? " tiny" : "");
+      d.style.height = px + "px";
+      if (marks && big) { var s = document.createElement("span"); s.className = "sp-tag"; s.textContent = label + " " + px; d.appendChild(s); }
+      return d;
+    }
+    function field(lab, val){
+      var f = document.createElement("div");
+      var l = document.createElement("div"); l.className = "sp-label"; l.textContent = lab;
+      var i = document.createElement("div"); i.className = "sp-input"; i.textContent = val;
+      f.appendChild(l); f.appendChild(gap(L, "label", false)); f.appendChild(i);
+      return f;
+    }
+    function group(title, a, b){
+      var g = document.createElement("div");
+      var h = document.createElement("div"); h.className = "sp-gtitle"; h.textContent = title;
+      g.appendChild(h); g.appendChild(gap(F, "field", true)); g.appendChild(field(a[0], a[1])); g.appendChild(gap(F, "field", true)); g.appendChild(field(b[0], b[1]));
+      return g;
+    }
+    form.appendChild(group("Data pribadi", ["Nama lengkap", "Budi Santoso"], ["Email", "budi@contoh.id"]));
+    form.appendChild(gap(G, "grup", true));
+    form.appendChild(group("Alamat", ["Kota", "Bandung"], ["Kode pos", "40115"]));
+    var v = $("#sp-verdict"), r = G / F, cls, msg;
+    if (L >= F) { cls = "bad"; msg = "<b>Label terlalu jauh dari input-nya.</b> Jarak label ke input (" + L + "px) tidak lebih kecil dari jarak antar-field (" + F + "px), jadi label bisa terbaca milik field lain."; }
+    else if (r < 1.5) { cls = "bad"; msg = "<b>Dua grup terbaca seperti satu daftar.</b> Antar-grup " + G + "px hampir sama dengan antar-field " + F + "px. Rasio sekarang " + r.toFixed(1) + "x."; }
+    else if (r < 2) { cls = "warn"; msg = "<b>Grup mulai terpisah.</b> Rasio " + r.toFixed(1) + "x. Naikkan antar-grup sampai minimal 2x antar-field."; }
+    else { cls = "ok"; msg = "<b>Lulus.</b> Rasio " + r.toFixed(1) + "x, grup terbaca jelas, dan label menempel ke input-nya."; markDone("m3-a"); }
+    v.className = "verdict " + cls; v.innerHTML = msg;
+    $("#sp-token").textContent =
+      "/* Spacing scale (px): " + SCALE.join(", ") + " */\n" +
+      SCALE.map(function(s, i){ return "--space-" + (i + 1) + ": " + s + "px;"; }).join("\n") +
+      "\n\n/* Pemakaian */\n--gap-label: " + L + "px;   /* label ke input */\n--gap-field: " + F + "px;   /* antar-field dalam grup */\n--gap-group: " + G + "px;   /* antar-grup */";
+  }
+  function bindSpacing(){
+    $("#sp-l").addEventListener("input", function(e){ state.tokens.labelGap = LABEL_SCALE[+e.target.value]; renderSpacing(); renderDesignMd(); save("tokens"); });
+    $("#sp-f").addEventListener("input", function(e){ state.tokens.fieldGap = SCALE[+e.target.value]; renderSpacing(); renderDesignMd(); save("tokens"); });
+    $("#sp-g").addEventListener("input", function(e){ state.tokens.groupGap = SCALE[+e.target.value]; renderSpacing(); renderDesignMd(); save("tokens"); });
+    $("#sp-marks").addEventListener("change", renderSpacing);
+  }
+
+  /* ---------- Drill 4: type ---------- */
+  var TYPE_STEPS = [
+    { name: "caption", step: -1, sample: "Diperbarui 3 Okt 2026, 14.12" },
+    { name: "body", step: 0, sample: "Pembayaran diverifikasi otomatis dalam 5 menit setelah dana masuk." },
+    { name: "h3", step: 1, sample: "Metode pembayaran" },
+    { name: "h2", step: 2, sample: "Riwayat transaksi" },
+    { name: "h1", step: 3, sample: "Pembayaran masuk" },
+    { name: "display", step: 4, sample: "Rp 128,4 jt" }
+  ];
+  function typeSizes(){
+    var b = +state.tokens.typeBase, r = +state.tokens.typeRatio;
+    return TYPE_STEPS.map(function(s){ return { name: s.name, sample: s.sample, px: Math.round(b * Math.pow(r, s.step)) }; });
+  }
+  function renderType(){
+    var t = state.tokens;
+    $("#ty-base").value = String(t.typeBase);
+    $("#ty-ratio").value = String(t.typeRatio);
+    var ws = (t.weights || []).map(Number).sort(function(a, b){ return a - b; });
+    $$("#ty-weights input").forEach(function(i){ i.checked = ws.indexOf(+i.value) >= 0; });
+    var sizes = typeSizes();
+    var lo = ws.length ? ws[0] : 400, hi = ws.length ? ws[ws.length - 1] : 600;
+    var host = $("#ty-specimen"); host.textContent = "";
+    sizes.slice().reverse().forEach(function(s){
+      var row = document.createElement("div"); row.className = "ty-row";
+      var m = document.createElement("div"); m.className = "ty-meta"; m.textContent = s.name + " · " + s.px + "px";
+      var p = document.createElement("div"); p.className = "ty-sample" + (s.name === "body" ? " body" : "");
+      p.style.fontSize = s.px + "px";
+      p.style.fontWeight = (s.name === "body" || s.name === "caption") ? lo : hi;
+      if (s.name === "caption") p.style.color = "#5B6372";
+      if (s.name === "display") p.style.fontVariantNumeric = "tabular-nums";
+      p.textContent = s.sample;
+      row.appendChild(m); row.appendChild(p); host.appendChild(row);
+    });
+    var v = $("#ty-verdict");
+    if (!ws.length) { v.className = "verdict bad"; v.innerHTML = "<b>Pilih minimal satu bobot.</b>"; }
+    else if (ws.length > 3) { v.className = "verdict warn"; v.innerHTML = "<b>" + ws.length + " bobot terlalu banyak.</b> Lebih dari 3 bobot membuat hierarki kabur. Pilih 2 sampai 3."; }
+    else if (ws.length === 1) { v.className = "verdict warn"; v.innerHTML = "<b>Hanya 1 bobot.</b> Judul dan isi jadi sulit dibedakan. Tambahkan satu bobot yang lebih tebal."; }
+    else if (sizes[0].px < 12) { v.className = "verdict warn"; v.innerHTML = "<b>Caption " + sizes[0].px + "px terlalu kecil.</b> Minimal 12px. Naikkan ukuran dasar atau turunkan rasio."; }
+    else { v.className = "verdict ok"; v.innerHTML = "<b>Skala siap.</b> " + sizes.length + " ukuran dan " + ws.length + " bobot. Salin tokennya di bawah."; }
+    $("#ty-token").textContent =
+      "/* Type scale: base " + t.typeBase + "px, rasio " + t.typeRatio + " */\n" +
+      sizes.map(function(s){ return "--text-" + s.name + ": " + s.px + "px;"; }).join("\n") +
+      "\n\n/* Bobot */\n" + ws.map(function(w){ return "--weight-" + w + ": " + w + ";"; }).join("\n") +
+      "\n\n/* Line height */\n--leading-body: 1.5;\n--leading-heading: 1.2;";
+  }
+  function bindType(){
+    $("#ty-base").addEventListener("change", function(e){ state.tokens.typeBase = +e.target.value; renderType(); renderDesignMd(); save("tokens"); });
+    $("#ty-ratio").addEventListener("change", function(e){ state.tokens.typeRatio = +e.target.value; renderType(); renderDesignMd(); save("tokens"); });
+    $("#ty-weights").addEventListener("change", function(){
+      state.tokens.weights = $$("#ty-weights input").filter(function(i){ return i.checked; }).map(function(i){ return +i.value; });
+      renderType(); renderDesignMd(); save("tokens");
+    });
+  }
+
+  /* ---------- Drill 5: color ---------- */
+  var RAMP = [["50", 97], ["100", 94], ["200", 88], ["300", 78], ["400", 64], ["500", 50], ["600", 40], ["700", 31], ["800", 22], ["900", 13]];
+  function hslToHex(h, s, l){
+    s /= 100; l /= 100;
+    var a = s * Math.min(l, 1 - l);
+    var f = function(n){ var k = (n + h / 30) % 12; var c = l - a * Math.max(-1, Math.min(k - 3, Math.min(9 - k, 1))); return Math.round(c * 255).toString(16).padStart(2, "0"); };
+    return ("#" + f(0) + f(8) + f(4)).toUpperCase();
+  }
+  function hexToRgb(h){ h = h.replace("#", ""); if (h.length === 3) h = h.split("").map(function(c){ return c + c; }).join(""); var n = parseInt(h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function lum(h){ var w = [0.2126, 0.7152, 0.0722]; return hexToRgb(h).reduce(function(acc, v, i){ v /= 255; v = v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); return acc + v * w[i]; }, 0); }
+  function contrast(a, b){ var A = lum(a), B = lum(b); return (Math.max(A, B) + 0.05) / (Math.min(A, B) + 0.05); }
+  function ramp(){ var t = state.tokens, o = {}; RAMP.forEach(function(r){ o[r[0]] = hslToHex(+t.nHue, +t.nSat, r[1]); }); return o; }
+  function colorPairs(){
+    var t = state.tokens, n = ramp(), W = "#FFFFFF";
+    return [
+      { name: "Teks utama (neutral-900 di putih)", fg: n["900"], bg: W },
+      { name: "Teks redup (neutral-" + t.mutedStep + " di putih)", fg: n[t.mutedStep], bg: W },
+      { name: "Teks tombol (putih di primer)", fg: W, bg: t.primary },
+      { name: "Link (primer di putih)", fg: t.primary, bg: W },
+      { name: "Teks error (bahaya di putih)", fg: t.danger, bg: W },
+      { name: "Teks sukses (sukses di putih)", fg: t.success, bg: W },
+      { name: "Teks peringatan (peringatan di putih)", fg: t.warning, bg: W }
+    ];
+  }
+  function renderColor(){
+    var t = state.tokens, n = ramp();
+    $("#co-primary").value = t.primary.toLowerCase(); $("#co-primary-v").textContent = t.primary.toUpperCase();
+    $("#co-hue").value = t.nHue; $("#co-hue-o").textContent = t.nHue + "°";
+    $("#co-sat").value = t.nSat; $("#co-sat-o").textContent = t.nSat + "%";
+    $("#co-muted").value = t.mutedStep;
+    $("#co-success").value = t.success.toLowerCase(); $("#co-warning").value = t.warning.toLowerCase(); $("#co-danger").value = t.danger.toLowerCase();
+    var rampEl = $("#co-ramp"); rampEl.textContent = "";
+    RAMP.forEach(function(r){
+      var d = document.createElement("div");
+      d.style.background = n[r[0]];
+      d.style.color = r[1] > 55 ? n["900"] : "#FFFFFF";
+      d.textContent = r[0];
+      d.title = "neutral-" + r[0] + " " + n[r[0]];
+      rampEl.appendChild(d);
+    });
+    var pv = $("#co-preview"); pv.textContent = "";
+    pv.style.background = "#FFFFFF"; pv.style.color = n["900"]; pv.style.borderColor = n["200"];
+    var title = document.createElement("div"); title.className = "co-title"; title.textContent = "Langganan Premium 12 bulan"; title.style.color = n["900"];
+    var muted = document.createElement("div"); muted.className = "co-muted"; muted.textContent = "Diperpanjang otomatis 3 Okt 2027"; muted.style.color = n[t.mutedStep];
+    var acts = document.createElement("div"); acts.className = "co-actions";
+    var btn = document.createElement("button"); btn.type = "button"; btn.className = "co-btn"; btn.textContent = "Bayar sekarang"; btn.style.background = t.primary; btn.tabIndex = -1;
+    var link = document.createElement("span"); link.className = "co-link"; link.textContent = "Lihat rincian"; link.style.color = t.primary;
+    acts.appendChild(btn); acts.appendChild(link);
+    var err = document.createElement("div"); err.className = "co-err"; err.textContent = "Kartu ditolak. Coba metode lain."; err.style.color = t.danger;
+    pv.appendChild(title); pv.appendChild(muted); pv.appendChild(acts); pv.appendChild(err);
+    var pairs = colorPairs(), host = $("#co-pairs"); host.textContent = "";
+    var allPass = true;
+    pairs.forEach(function(p){
+      var c = contrast(p.fg, p.bg), pass = c >= 4.5;
+      if (!pass) allPass = false;
+      var row = document.createElement("div"); row.className = "pair";
+      var nm = document.createElement("span"); nm.textContent = p.name;
+      var ra = document.createElement("span"); ra.className = "ratio"; ra.textContent = (Math.floor(c * 100) / 100).toFixed(2) + ":1";
+      var bd = document.createElement("span"); bd.className = "badge " + (pass ? "ok" : "bad"); bd.textContent = pass ? "Lulus AA" : "Gagal";
+      row.appendChild(nm); row.appendChild(ra); row.appendChild(bd); host.appendChild(row);
+    });
+    if (allPass) markDone("m5-a");
+    $("#co-token").textContent = colorTokenText();
+  }
+  function colorTokenText(){
+    var t = state.tokens, n = ramp();
+    return "/* Netral: hue " + t.nHue + ", saturasi " + t.nSat + "% */\n" +
+      RAMP.map(function(r){ return "--neutral-" + r[0] + ": " + n[r[0]] + ";"; }).join("\n") +
+      "\n\n/* Peran */\n--primary: " + t.primary.toUpperCase() + ";   /* hanya untuk aksi */\n--success: " + t.success.toUpperCase() + ";\n--warning: " + t.warning.toUpperCase() + ";\n--danger: " + t.danger.toUpperCase() + ";\n" +
+      "--text: var(--neutral-900);\n--text-muted: var(--neutral-" + t.mutedStep + ");\n--border: var(--neutral-200);\n--bg-page: var(--neutral-50);\n--bg-surface: #FFFFFF;";
+  }
+  function bindColor(){
+    var set = function(key, val){ state.tokens[key] = val; renderColor(); renderDesignMd(); save("tokens"); };
+    $("#co-primary").addEventListener("input", function(e){ set("primary", e.target.value.toUpperCase()); });
+    $("#co-hue").addEventListener("input", function(e){ set("nHue", +e.target.value); });
+    $("#co-sat").addEventListener("input", function(e){ set("nSat", +e.target.value); });
+    $("#co-muted").addEventListener("change", function(e){ set("mutedStep", e.target.value); });
+    $("#co-success").addEventListener("input", function(e){ set("success", e.target.value.toUpperCase()); });
+    $("#co-warning").addEventListener("input", function(e){ set("warning", e.target.value.toUpperCase()); });
+    $("#co-danger").addEventListener("input", function(e){ set("danger", e.target.value.toUpperCase()); });
+  }
+
+  /* ---------- Drill 6: density ---------- */
+  var ROWS = [
+    { nama: "Budi Santoso", produk: "Premium 12 bulan", nominal: 1250000, status: "Lunas", tgl: "3 Okt" },
+    { nama: "Sari Wulandari", produk: "Webinar Analisa Teknikal", nominal: 349000, status: "Lunas", tgl: "3 Okt" },
+    { nama: "Andi Pratama", produk: "VIP 12 bulan", nominal: 12500000, status: "Menunggu", tgl: "2 Okt" },
+    { nama: "Dewi Lestari", produk: "Premium 1 bulan", nominal: 149000, status: "Gagal", tgl: "2 Okt" },
+    { nama: "Rizky Hidayat", produk: "Premium 3 bulan", nominal: 399000, status: "Lunas", tgl: "1 Okt" }
+  ];
+  function rp(n){ return "Rp " + n.toLocaleString("id-ID"); }
+  function stPill(s){ var sp = document.createElement("span"); sp.className = "st " + (s === "Lunas" ? "lunas" : s === "Menunggu" ? "tunggu" : "gagal"); sp.textContent = s; return sp; }
+  function renderDensity(){
+    var tab = ($('input[name="de-tab"]:checked') || {}).value || "tabel";
+    var host = $("#de-view"); host.textContent = "";
+    if (tab === "kartu") {
+      var g = document.createElement("div"); g.className = "de-cards";
+      ROWS.forEach(function(r){
+        var c = document.createElement("div"); c.className = "de-card";
+        var top = document.createElement("div"); top.appendChild(stPill(r.status));
+        var n = document.createElement("div"); n.className = "n"; n.textContent = rp(r.nominal);
+        var m = document.createElement("div"); m.className = "m"; m.textContent = r.nama + " · " + r.produk;
+        var d = document.createElement("div"); d.className = "m"; d.textContent = r.tgl;
+        c.appendChild(top); c.appendChild(n); c.appendChild(m); c.appendChild(d); g.appendChild(c);
+      });
+      host.appendChild(g);
+    } else if (tab === "tabel") {
+      var tb = document.createElement("table"); tb.className = "de-table";
+      var head = document.createElement("tr");
+      [["Tanggal", ""], ["Member", ""], ["Produk", ""], ["Nominal", "r"], ["Status", ""]].forEach(function(h){ var th = document.createElement("th"); th.textContent = h[0]; if (h[1]) th.className = h[1]; head.appendChild(th); });
+      tb.appendChild(head);
+      ROWS.forEach(function(r){
+        var tr = document.createElement("tr");
+        [r.tgl, r.nama, r.produk].forEach(function(v){ var td = document.createElement("td"); td.textContent = v; tr.appendChild(td); });
+        var tn = document.createElement("td"); tn.className = "r"; tn.textContent = rp(r.nominal); tr.appendChild(tn);
+        var ts = document.createElement("td"); ts.appendChild(stPill(r.status)); tr.appendChild(ts);
+        tb.appendChild(tr);
+      });
+      host.appendChild(tb);
+    } else {
+      var l = document.createElement("div"); l.className = "de-list";
+      ROWS.forEach(function(r){
+        var li = document.createElement("div"); li.className = "de-li";
+        var left = document.createElement("div"); left.textContent = r.nama;
+        var sm = document.createElement("small"); sm.textContent = r.produk + " · " + rp(r.nominal); left.appendChild(sm);
+        var right = document.createElement("div"); right.appendChild(stPill(r.status));
+        var ch = document.createElement("span"); ch.className = "chev"; ch.textContent = " ›"; right.appendChild(ch);
+        li.appendChild(left); li.appendChild(right); l.appendChild(li);
+      });
+      host.appendChild(l);
+    }
+  }
+  var DENSITY_Q = [
+    { id: "d1", q: "Staf finance mencocokkan sekitar 200 pembayaran per hari dengan mutasi bank.", a: "tabel",
+      why: { tabel: "Benar. Tugasnya memindai dan membandingkan kolom nominal dan tanggal setiap hari. Tabel padat paling cepat.", kartu: "Kurang tepat. Card memecah data seragam ke banyak kotak, jadi nominal tidak bisa dibandingkan dalam satu kolom.", daftar: "Kurang tepat. Daftar cocok untuk dipilih lalu dibuka, bukan untuk membandingkan ratusan nominal." } },
+    { id: "d2", q: "Halaman promo tiga kelas webinar untuk calon member baru, dibuka sekali dari iklan.", a: "kartu",
+      why: { kartu: "Benar. Itemnya sedikit, perlu visual dan ruang untuk menjual. Card dengan density lega cocok.", tabel: "Kurang tepat. Tabel terasa seperti laporan, padahal tujuannya meyakinkan orang yang baru pertama datang.", daftar: "Kurang tepat. Daftar terlalu datar untuk tiga produk yang perlu dibedakan dan dijual." } },
+    { id: "d3", q: "Menu pengaturan akun di aplikasi HP: profil, keamanan, notifikasi, bahasa.", a: "daftar",
+      why: { daftar: "Benar. Setiap item dipilih untuk masuk ke halaman berikutnya. Daftar dengan tanda panah adalah pola yang sudah dikenal (hukum Jakob).", kartu: "Kurang tepat. Card memakan ruang di layar HP tanpa memberi informasi tambahan.", tabel: "Kurang tepat. Tidak ada data yang dibandingkan antar-kolom." } }
+  ];
+  var CHOICE_NAMES = { kartu: "Card", tabel: "Tabel", daftar: "Daftar" };
+  var LAW_Q = [
+    { id: "l1", q: "Tombol \"Bayar\" kecil dan ada di pojok kanan atas, jauh dari field terakhir yang diisi pengguna.", a: "fitts", why: "Fitts: target kecil dan jauh lebih lambat dan lebih sering meleset. Besarkan tombolnya dan letakkan dekat field terakhir." },
+    { id: "l2", q: "Dropdown kategori berisi 40 pilihan tanpa pengelompokan, pengguna lama sekali memilih.", a: "hick", why: "Hick: makin banyak pilihan, makin lama orang memutuskan. Kelompokkan, beri pencarian, atau tampilkan pilihan yang sering dipakai di atas." },
+    { id: "l3", q: "Ikon keranjang ditaruh di kiri bawah, padahal toko online lain menaruhnya di kanan atas.", a: "jakob", why: "Jakob: pengguna menghabiskan sebagian besar waktunya di aplikasi lain dan berharap aplikasimu bekerja dengan cara yang sama." },
+    { id: "l4", q: "Label \"Email\" lebih dekat ke input password di bawahnya daripada ke input email-nya sendiri.", a: "proximity", why: "Proximity: elemen yang berdekatan terbaca satu grup. Label harus menempel ke input miliknya." }
+  ];
+  var LAW_NAMES = { fitts: "Fitts", hick: "Hick", jakob: "Jakob", proximity: "Proximity" };
+  function buildQuiz(hostSel, list, names, storeKey, doneId){
+    var host = $(hostSel);
+    list.forEach(function(item, idx){
+      var q = document.createElement("div"); q.className = "q";
+      var p = document.createElement("p"); p.textContent = (idx + 1) + ". " + item.q; p.id = storeKey + "-" + item.id + "-q";
+      var seg = document.createElement("div"); seg.className = "seg"; seg.setAttribute("role", "radiogroup"); seg.setAttribute("aria-labelledby", p.id);
+      Object.keys(names).forEach(function(k){
+        var lab = document.createElement("label");
+        var inp = document.createElement("input"); inp.type = "radio"; inp.name = storeKey + "-" + item.id; inp.value = k;
+        var sp = document.createElement("span"); sp.textContent = names[k];
+        lab.appendChild(inp); lab.appendChild(sp); seg.appendChild(lab);
+      });
+      var fb = document.createElement("div"); fb.className = "fb"; fb.id = storeKey + "-" + item.id + "-fb"; fb.setAttribute("aria-live", "polite");
+      q.appendChild(p); q.appendChild(seg); q.appendChild(fb); host.appendChild(q);
+    });
+    host.addEventListener("change", function(e){
+      var t = e.target; if (t.type !== "radio") return;
+      var id = t.name.slice(storeKey.length + 1);
+      state.quiz[storeKey] = Object.assign({}, state.quiz[storeKey]);
+      state.quiz[storeKey][id] = t.value;
+      renderQuiz(list, storeKey, doneId);
+      save("progress");
+    });
+  }
+  function renderQuiz(list, storeKey, doneId){
+    var ans = state.quiz[storeKey] || {}, right = 0;
+    list.forEach(function(item){
+      var a = ans[item.id];
+      $$('input[name="' + storeKey + "-" + item.id + '"]').forEach(function(i){ i.checked = i.value === a; });
+      var fb = $("#" + storeKey + "-" + item.id + "-fb");
+      if (!a) { fb.textContent = ""; fb.className = "fb"; return; }
+      var ok = a === item.a; if (ok) right++;
+      fb.className = "fb " + (ok ? "ok" : "bad");
+      fb.textContent = typeof item.why === "string" ? (ok ? "Benar. " + item.why : "Belum tepat. Coba pikirkan lagi apa yang membuat pengguna lambat atau salah baca.") : item.why[a];
+    });
+    if (right === list.length) markDone(doneId);
+  }
+
+  /* ---------- Drill 7: states ---------- */
+  var STATE_NOTES = {
+    "default": ["Data tampil dengan hierarki yang jelas.", "Satu aksi utama terlihat.", "Angka rata kanan dan sejajar."],
+    loading: ["Skeleton seukuran konten, supaya layout tidak meloncat saat data datang.", "Tombol aksi nonaktif dengan label yang menjelaskan.", "Kalau lebih dari beberapa detik, beri teks progres."],
+    empty: ["Kalimat yang menjelaskan kenapa kosong.", "Satu aksi berikutnya yang masuk akal.", "Bukan sekadar \"No data\"."],
+    error: ["Apa yang gagal, dengan bahasa pengguna.", "Cara memperbaikinya, misalnya tombol \"Coba lagi\".", "Filter dan input pengguna tetap tersimpan."],
+    disabled: ["Tombol terlihat jelas tidak aktif.", "Alasan kenapa tidak aktif, tepat di dekat tombol.", "Cara membuatnya aktif."],
+    success: ["Konfirmasi singkat yang menyebut hasilnya.", "Perubahan langsung terlihat di data.", "Diumumkan ke pembaca layar (role=\"status\"). Boleh hilang sendiri setelah sekitar 5 detik kalau tidak berisi tombol. Kalau ada tombol Urungkan, jangan hilang sebelum disentuh."]
+  };
+  function el(tag, cls, text){ var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function renderStates(){
+    var s = ($('input[name="sa-tab"]:checked') || {}).value || "default";
+    var host = $("#sa-view"); host.textContent = "";
+    var head = el("div", "sa-head"); head.appendChild(el("div", "sa-title", "Pembayaran masuk hari ini"));
+    var btn = el("button", "sa-btn", "Tandai sudah dicek"); btn.type = "button"; btn.tabIndex = -1;
+    head.appendChild(btn); host.appendChild(head);
+    var rows = [["Budi Santoso", "Rp 1.250.000"], ["Sari Wulandari", "Rp 349.000"], ["Rizky Hidayat", "Rp 399.000"]];
+    function addRows(withCheck){
+      rows.forEach(function(r){
+        var row = el("div", "sa-row"); var left = el("span", null, r[0]);
+        if (withCheck) { left.appendChild(document.createTextNode(" ")); left.appendChild(el("span", "sa-check", "Sudah dicek")); }
+        row.appendChild(left); row.appendChild(el("span", "r", r[1])); host.appendChild(row);
+      });
+    }
+    if (s === "default") addRows(false);
+    else if (s === "loading") {
+      btn.disabled = true; btn.textContent = "Memuat...";
+      [70, 55, 62].forEach(function(w){ var row = el("div", "sa-row"); var a = el("div", "sk"); a.style.width = w + "%"; var b = el("div", "sk"); b.style.width = "22%"; row.appendChild(a); row.appendChild(b); host.appendChild(row); });
+    } else if (s === "empty") {
+      btn.className = "sa-btn ghost"; btn.textContent = "Ubah tanggal";
+      var em = el("div", "sa-empty"); em.appendChild(el("b", null, "Belum ada pembayaran masuk hari ini."));
+      em.appendChild(el("p", null, "Pembayaran baru muncul otomatis. Kalau kamu menunggu pembayaran tertentu, cek tanggal di filter."));
+      host.appendChild(em);
+    } else if (s === "error") {
+      btn.disabled = true;
+      var al = el("div", "sa-alert"); al.appendChild(el("b", null, "Data pembayaran gagal dimuat."));
+      al.appendChild(el("p", null, "Koneksi ke server pembayaran terputus. Filter tanggal yang kamu pilih tetap tersimpan."));
+      var rb = el("button", "sa-btn ghost", "Coba lagi"); rb.type = "button"; rb.tabIndex = -1; al.appendChild(rb);
+      host.appendChild(al);
+      host.appendChild(el("div", "sa-help", "Tombol menandai aktif lagi setelah data berhasil dimuat."));
+    } else if (s === "disabled") {
+      btn.disabled = true; addRows(false);
+      host.appendChild(el("div", "sa-help", "Pilih minimal satu pembayaran untuk menandai sudah dicek."));
+    } else if (s === "success") {
+      addRows(true);
+      host.appendChild(el("div", "sa-toast", "3 pembayaran ditandai sudah dicek."));
+    }
+    var notes = $("#sa-notes"); notes.textContent = "";
+    STATE_NOTES[s].forEach(function(n){ notes.appendChild(el("li", null, n)); });
+  }
+
+  /* ---------- Drill 8: DESIGN.md ---------- */
+  function buildRules(){
+    var host = $("#ds-rules");
+    RULES.forEach(function(r){
+      var lab = el("label", "check");
+      var inp = document.createElement("input"); inp.type = "checkbox"; inp.dataset.rule = r.id; inp.id = "rule-" + r.id;
+      lab.appendChild(inp); lab.appendChild(el("span", null, r.text)); lab.appendChild(el("em", null, ""));
+      host.appendChild(lab);
+    });
+    host.addEventListener("change", function(e){
+      var t = e.target; if (!t.dataset.rule) return;
+      state.rules.on = Object.assign({}, state.rules.on); state.rules.on[t.dataset.rule] = t.checked;
+      renderDesignMd(); save("forms");
+    });
+    $("#ds-custom").addEventListener("input", function(e){
+      state.rules.custom = e.target.value; renderDesignMd(); save("forms");
+    });
+    $("#ds-radius").addEventListener("change", function(e){ state.tokens.radius = +e.target.value; renderDesignMd(); save("tokens"); });
+  }
+  function ruleOn(id){ return state.rules.on[id] !== false; }
+  function renderDesignMd(){
+    var t = state.tokens;
+    $$("#ds-rules input").forEach(function(i){ i.checked = ruleOn(i.dataset.rule); i.closest(".check").classList.toggle("is-done", i.checked); });
+    $("#ds-radius").value = String(t.radius);
+    if (document.activeElement !== $("#ds-custom")) $("#ds-custom").value = state.rules.custom || "";
+    var ws = (t.weights || []).map(Number).sort(function(a, b){ return a - b; });
+    var sizes = typeSizes();
+    var rules = RULES.filter(function(r){ return ruleOn(r.id); }).map(function(r){ return "- " + r.text; });
+    (state.rules.custom || "").split("\n").map(function(s){ return s.trim(); }).filter(Boolean).forEach(function(s){ rules.push("- " + s); });
+    var md = [
+      "# DESIGN.md",
+      "",
+      "Aturan desain proyek ini. Wajib dibaca sebelum membuat atau mengubah UI.",
+      "Kalau permintaan bertentangan dengan aturan di sini, tanyakan dulu.",
+      "",
+      "## Token",
+      "",
+      "```css",
+      ":root {",
+      colorTokenText().split("\n").map(function(l){ return l ? "  " + l : ""; }).join("\n"),
+      "",
+      "  /* Tipografi: base " + t.typeBase + "px, rasio " + t.typeRatio + " */",
+      sizes.map(function(s){ return "  --text-" + s.name + ": " + s.px + "px;"; }).join("\n"),
+      ws.map(function(w){ return "  --weight-" + w + ": " + w + ";"; }).join("\n"),
+      "  --leading-body: 1.5;",
+      "  --leading-heading: 1.2;",
+      "",
+      "  /* Spacing (px) */",
+      SCALE.map(function(s, i){ return "  --space-" + (i + 1) + ": " + s + "px;"; }).join("\n"),
+      "",
+      "  --radius: " + t.radius + "px;",
+      "}",
+      "```",
+      "",
+      "## Pemakaian token",
+      "",
+      "- Background halaman --bg-page. Panel, tabel, dan form di atas --bg-surface.",
+      "- Teks utama --text. Label, keterangan, dan info tersier --text-muted.",
+      "- Border tipis 1px --border. Shadow hanya untuk elemen yang melayang (dropdown, modal, toast).",
+      "- --primary hanya untuk aksi utama dan link. Jangan dipakai untuk dekorasi.",
+      "- Warna semantik hanya untuk status dan pesan, selalu disertai teks atau ikon.",
+      "- Ukuran font hanya dari --text-*. Bobot hanya: " + (ws.length ? ws.join(", ") : "(belum dipilih)") + ".",
+      "- Jarak hanya dari --space-*. Label ke input " + t.labelGap + "px, antar-field dalam grup " + t.fieldGap + "px, antar-grup " + t.groupGap + "px.",
+      "- Radius --radius untuk tombol, input, dan panel.",
+      "",
+      "## Aturan komponen",
+      "",
+      rules.length ? rules.join("\n") : "- (belum ada aturan)",
+      "",
+      "## Cek sebelum selesai",
+      "",
+      "Buka halamannya di browser, ambil screenshot, lalu pastikan:",
+      "- Ada satu fokus utama dan masih terbaca saat layar diburamkan.",
+      "- Grup terbaca dari jarak, tanpa perlu garis atau card tambahan.",
+      "- Tidak ada nilai warna, ukuran font, atau jarak di luar token.",
+      "- State memuat, kosong, error, nonaktif, dan sukses sudah ada.",
+      "- Semua teks kontras minimal 4.5:1."
+    ].join("\n");
+    $("#ds-out").textContent = md;
+    var warn = [];
+    if (t.labelGap >= t.fieldGap || t.groupGap < 2 * t.fieldGap) warn.push("spacing (Modul 3)");
+    if (ws.length < 2 || ws.length > 3) warn.push("bobot huruf (Modul 4)");
+    if (sizes[0].px < 12) warn.push("ukuran caption (Modul 4)");
+    if (colorPairs().some(function(p){ return contrast(p.fg, p.bg) < 4.5; })) warn.push("kontras warna (Modul 5)");
+    var dv = $("#ds-verdict");
+    if (warn.length) { dv.className = "verdict warn"; dv.innerHTML = "<b>Token belum lulus latihan:</b> " + warn.join(", ") + ". Perbaiki di latihannya dulu sebelum menyalin."; }
+    else { dv.className = "verdict ok"; dv.innerHTML = "<b>Semua token lulus latihan.</b> DESIGN.md siap disalin."; }
+  }
+
+  /* ---------- Drill 9: brief ---------- */
+  function briefVal(k){ return state.brief[k] != null ? state.brief[k] : BRIEF_EX[k]; }
+  function renderBrief(){
+    $$("[data-brief]").forEach(function(i){ if (document.activeElement !== i) i.value = briefVal(i.dataset.brief); });
+    var dens = { padat: "padat: tabel atau daftar ringkas, tinggi baris 40px, banyak data terlihat sekaligus", sedang: "sedang: ruang cukup, tetap ringkas", lega: "lega: banyak ruang, sedikit item, fokus ke satu pesan" };
+    var v = function(k){ return String(briefVal(k) || "").trim(); };
+    var line = function(label, k){ return v(k) ? label + v(k) + "." : null; };
+    var out = [
+      "Baca DESIGN.md dulu dan patuhi tokennya.",
+      "",
+      line("Buat: ", "layar"),
+      line("Pengguna: ", "pengguna"),
+      line("Tugas utama: ", "tugas"),
+      "",
+      "Prioritas informasi:",
+      line("- Paling menonjol: ", "utama"),
+      line("- Pendukung, lebih kecil dan lebih redup: ", "pendukung"),
+      "",
+      "Density " + (dens[v("density")] || v("density")) + ".",
+      v("aksi") ? "Aksi utama: satu tombol primer \"" + v("aksi") + "\". Aksi lain memakai tombol sekunder." : null,
+      "Wajib ada state: memuat, kosong, error, nonaktif, dan sukses.",
+      line("Referensi: ", "ref"),
+      line("Larangan: ", "larangan"),
+      "",
+      "Setelah selesai, buka halamannya di browser, ambil screenshot, dan nilai sendiri hasilnya terhadap DESIGN.md sebelum melapor."
+    ].filter(function(x){ return x !== null; }).join("\n");
+    $("#br-out").textContent = out;
+  }
+  function bindBrief(){
+    $("#br-form").addEventListener("input", function(e){
+      var t = e.target; if (!t.dataset.brief) return;
+      state.brief = Object.assign({}, state.brief); state.brief[t.dataset.brief] = t.value;
+      renderBrief(); save("forms");
+    });
+    $("#br-form").addEventListener("change", function(e){
+      var t = e.target; if (t.tagName !== "SELECT" || !t.dataset.brief) return;
+      state.brief = Object.assign({}, state.brief); state.brief[t.dataset.brief] = t.value;
+      renderBrief(); save("forms");
+    });
+    $("#br-reset").addEventListener("click", function(){ state.brief = {}; renderBrief(); save("forms"); });
+  }
+
+  /* ---------- Drill 10: critique ---------- */
+  var CRIT = [
+    { id: "c1", mock: function(){
+        var w = el("div", "mini-form"); w.style.gap = "12px";
+        w.appendChild(el("div", "mini-label", "Catatan pembayaran"));
+        var i = el("div", "mini-input"); w.appendChild(i);
+        var b = el("div", "mini-btns");
+        var x = el("button", "mini-btn", "Batal"); x.type = "button"; x.tabIndex = -1;
+        var y = el("button", "mini-btn", "Simpan"); y.type = "button"; y.tabIndex = -1;
+        b.appendChild(x); b.appendChild(y); w.appendChild(b); return w; },
+      opts: ["Tombolnya kurang menarik, buat lebih modern.", "Tombol \"Batal\" jadikan variant secondary (outline). Hanya \"Simpan\" yang primer.", "Perbesar kedua tombol supaya lebih mudah diklik."], a: 1,
+      why: ["Selera tanpa ukuran. AI akan menebak, biasanya dengan gradien atau shadow.", "Benar. Ada lokasi, gejala (dua aksi utama), dan instruksi yang terukur.", "Diagnosis salah. Masalahnya dua tombol sama penting, bukan ukurannya."] },
+    { id: "c2", mock: function(){
+        var w = el("div", "mini-form");
+        [["Data pribadi", 1], ["Nama", 0], ["Email", 0], ["Alamat", 1], ["Kota", 0]].forEach(function(r){
+          var d = el("div", r[1] ? "" : "mini-label", r[0]); if (r[1]) { d.style.fontWeight = "600"; d.style.fontSize = "13px"; }
+          d.style.marginBottom = "12px"; w.appendChild(d);
+          if (!r[1]) { var i = el("div", "mini-input"); i.style.marginBottom = "12px"; i.style.marginTop = "-8px"; w.appendChild(i); }
+        });
+        return w; },
+      opts: ["Jarak antar-grup jadikan 32px dan jarak antar-field dalam grup 12px.", "Spacing-nya kurang enak, rapikan.", "Tambahkan border di setiap field supaya lebih jelas."], a: 0,
+      why: ["Benar. Masalahnya jarak antar-grup sama dengan antar-field, dan instruksinya menyebut angka.", "Tidak bisa dieksekusi. \"Kurang enak\" bisa diartikan apa saja.", "Diagnosis salah. Field sudah punya border. Yang membuat grup tidak terbaca adalah jaraknya."] },
+    { id: "c3", mock: function(){
+        var t = el("table", "mini-table");
+        var h = el("tr"); ["Member", "Nominal"].forEach(function(x){ h.appendChild(el("th", null, x)); }); t.appendChild(h);
+        [["Budi", "Rp 1.250.000"], ["Sari", "Rp 349.000"], ["Andi", "Rp 12.500.000"]].forEach(function(r){ var tr = el("tr"); tr.appendChild(el("td", null, r[0])); tr.appendChild(el("td", null, r[1])); t.appendChild(tr); });
+        return t; },
+      opts: ["Tabelnya susah dibaca, perbaiki.", "Ganti tabel menjadi card per member.", "Kolom Nominal rata kanan dengan font-variant-numeric: tabular-nums."], a: 2,
+      why: ["Gejala tanpa penyebab dan tanpa instruksi.", "Membuat lebih buruk. Card memecah angka sehingga tidak bisa dibandingkan.", "Benar. Angka rata kiri dengan digit tidak sejajar sulit dibandingkan besarnya."] },
+    { id: "c4", mock: function(){
+        var w = el("div", "mini-card");
+        w.appendChild(el("div", null, "Langganan Premium")).style.fontWeight = "600";
+        var m = el("div", null, "Diperpanjang otomatis 3 Okt 2027"); m.style.color = "#B9BCC2"; m.style.fontSize = "13px"; w.appendChild(m);
+        return w; },
+      opts: ["Tebalkan semua teks supaya terbaca.", "Teks keterangan pakai --text-muted dengan target kontras minimal 4.5:1 (cek di latihan Modul 5).", "Warnanya pucat, perbaiki."], a: 1,
+      why: ["Diagnosis salah. Masalahnya kontras warna, bukan bobot. Menebalkan semua teks juga merusak hierarki.", "Benar. Gejalanya kontras rendah, instruksinya menyebut token dan target angka.", "Gejala benar, tapi tanpa target. AI bisa mengganti dengan warna yang masih gagal."] }
+  ];
+  function buildCrit(){
+    var host = $("#cr-cases");
+    CRIT.forEach(function(c, idx){
+      var box = el("div", "cr-case");
+      box.appendChild(el("div", "ctl-label", "Kasus " + (idx + 1)));
+      var cv = el("div", "canvas cr-canvas"); cv.appendChild(c.mock()); box.appendChild(cv);
+      var opts = el("div", "cr-opts"); opts.setAttribute("role", "radiogroup"); opts.setAttribute("aria-label", "Pilihan kritik kasus " + (idx + 1));
+      c.opts.forEach(function(o, i){
+        var lab = el("label"); var inp = document.createElement("input"); inp.type = "radio"; inp.name = "crit-" + c.id; inp.value = String(i);
+        lab.appendChild(inp); lab.appendChild(el("span", null, o)); opts.appendChild(lab);
+      });
+      box.appendChild(opts);
+      var fb = el("div", "fb"); fb.id = "crit-" + c.id + "-fb"; fb.setAttribute("aria-live", "polite"); fb.style.fontSize = "14px"; box.appendChild(fb);
+      host.appendChild(box);
+    });
+    host.addEventListener("change", function(e){
+      var t = e.target; if (t.type !== "radio") return;
+      state.quiz.crit = Object.assign({}, state.quiz.crit); state.quiz.crit[t.name.slice(5)] = +t.value;
+      renderCrit(); save("progress");
+    });
+  }
+  function renderCrit(){
+    var ans = state.quiz.crit || {}, right = 0;
+    CRIT.forEach(function(c){
+      var a = ans[c.id];
+      $$('input[name="crit-' + c.id + '"]').forEach(function(i){
+        var lab = i.closest("label"); i.checked = a != null && +i.value === a;
+        lab.classList.toggle("right", i.checked && a === c.a); lab.classList.toggle("wrong", i.checked && a !== c.a);
+      });
+      var fb = $("#crit-" + c.id + "-fb");
+      if (a == null) { fb.textContent = ""; return; }
+      if (a === c.a) right++;
+      fb.style.color = a === c.a ? "var(--ok)" : "var(--bad)";
+      fb.textContent = c.why[a];
+    });
+    if (right === CRIT.length) markDone("m10-a");
+  }
+
+  /* ---------- Rubric ---------- */
+  var RUBRIC = [
+    ["Satu fokus utama", "Masih terbaca jelas saat squint test."],
+    ["Grup terbaca dari jarak", "Jarak dalam grup minimal 2x lebih kecil dari antar-grup."],
+    ["Spacing dari skala", "Tidak ada nilai jarak di luar token."],
+    ["Tipografi terbatas", "Maksimal 6 ukuran dan 3 bobot."],
+    ["Satu warna aksi", "Netral dominan, primer hanya untuk aksi."],
+    ["Kontras lulus", "Semua teks minimal 4.5:1."],
+    ["Density sesuai tugas", "Bentuk layout cocok dengan frekuensi dan tugas pengguna."],
+    ["State lengkap", "Memuat, kosong, error, nonaktif, dan sukses."],
+    ["Teks jelas", "Judul menyebut isi, tombol menyebut aksi, error menyebut solusi."],
+    ["Konsisten dengan DESIGN.md", "Atau dengan design system kantor."]
+  ];
+  function buildRubric(){
+    var host = $("#rubric");
+    RUBRIC.forEach(function(r, i){
+      var row = el("div", "rb-row");
+      var p = el("p", null, r[0]); p.id = "rb-" + i + "-l"; p.appendChild(el("small", null, r[1])); row.appendChild(p);
+      var seg = el("div", "seg"); seg.setAttribute("role", "radiogroup"); seg.setAttribute("aria-labelledby", p.id);
+      [0, 1, 2].forEach(function(v){ var lab = el("label"); var inp = document.createElement("input"); inp.type = "radio"; inp.name = "rb-" + i; inp.value = String(v); lab.appendChild(inp); lab.appendChild(el("span", null, String(v))); seg.appendChild(lab); });
+      row.appendChild(seg); host.appendChild(row);
+    });
+    var tot = el("div", "rb-total"); tot.appendChild(el("span", "ctl-label", "Total skor"));
+    var n = el("span", "counter"); n.id = "rb-sum"; tot.appendChild(n); host.appendChild(tot);
+    host.addEventListener("change", function(e){
+      var t = e.target; if (t.type !== "radio") return;
+      state.rubric = Object.assign({}, state.rubric); state.rubric[t.name.slice(3)] = +t.value;
+      renderRubric(); save("progress");
+    });
+  }
+  function renderRubric(){
+    var sum = 0, rated = 0;
+    RUBRIC.forEach(function(r, i){
+      var v = state.rubric[i];
+      $$('input[name="rb-' + i + '"]').forEach(function(inp){ inp.checked = v != null && +inp.value === v; });
+      if (v != null) { sum += v; rated++; }
+    });
+    $("#rb-sum").textContent = sum + " / 20" + (rated < RUBRIC.length ? "  (" + rated + " dari 10 dinilai)" : "");
+    if (rated === RUBRIC.length && sum >= 15) markDone("m13-b");
+  }
+
+  /* ---------- Nav highlight ---------- */
+  function bindNav(){
+    var nb = $("#navbox");
+    var mq = window.matchMedia("(min-width: 1000px)");
+    var sync = function(){ nb.open = mq.matches; };
+    nb.querySelector("summary").addEventListener("click", function(e){ if (mq.matches) e.preventDefault(); });
+    if (mq.addEventListener) mq.addEventListener("change", sync); else if (mq.addListener) mq.addListener(sync);
+    sync();
+    $("#nav-list").addEventListener("click", function(e){ if (e.target.closest("a") && !mq.matches) nb.open = false; });
+    if (!("IntersectionObserver" in window)) return;
+    var links = {};
+    $$("[data-nav]").forEach(function(a){ links[a.dataset.nav] = a; });
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting) {
+          Object.keys(links).forEach(function(k){ links[k].classList.remove("active"); });
+          var a = links[en.target.id]; if (a) a.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    $$("section[id]").forEach(function(s){ if (links[s.id]) io.observe(s); });
+  }
+
+  /* ---------- Boot ---------- */
+  function renderAll(){
+    renderChecks(); renderNotes(); renderSlop(); renderHier(); renderSpacing(); renderType(); renderColor();
+    renderDensity(); renderQuiz(DENSITY_Q, "density", "m6-a"); renderStates(); renderQuiz(LAW_Q, "laws", "m7-a");
+    renderDesignMd(); renderBrief(); renderCrit(); renderRubric();
+  }
+  buildHierControls(); bindSpacing(); bindType(); bindColor();
+  buildQuiz("#de-quiz", DENSITY_Q, CHOICE_NAMES, "density", "m6-a");
+  buildQuiz("#law-quiz", LAW_Q, LAW_NAMES, "laws", "m7-a");
+  buildRules(); bindBrief(); buildCrit(); buildRubric(); bindNav();
+  $("#de-tabs").addEventListener("change", renderDensity);
+  $("#sa-tabs").addEventListener("change", renderStates);
+  initStorage();
+})();
+</script>
+</body>
+</html>
